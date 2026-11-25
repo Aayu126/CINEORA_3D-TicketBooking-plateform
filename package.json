@@ -2,7 +2,7 @@
   "name": "cineora-3d-cinema-booking",
   "version": "2.0.0",
   "private": true,
-  "description": "CINEORA - Modern Next.js 3D Movie Ticket Booking Platform with React Three Fiber, GSAP, Motion, Lenis, Tailwind, Zustand",
+  "description": "CINEORA - Ultra-Realistic 3D Cinema Experience & Ticket Booking Platform with Three.js, React Three Fiber, Physically-Based Rendering, and Next.js 14",
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
