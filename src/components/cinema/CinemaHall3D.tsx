@@ -754,7 +754,21 @@ export default function CinemaHall3D() {
       // Check screen click for Play / Pause trailer
       const screenHits = raycaster.intersectObject(screenMesh, false);
       if (screenHits.length > 0) {
-        toggleTrailer();
+        const vid = videoRef.current;
+        if (vid) {
+          if (vid.paused) {
+            vid.muted = isTrailerMuted;
+            vid.play().then(() => playTrailer()).catch(() => {
+              vid.muted = true;
+              vid.play().then(() => playTrailer()).catch(() => {});
+            });
+          } else {
+            vid.pause();
+            pauseTrailer();
+          }
+        } else {
+          toggleTrailer();
+        }
         return;
       }
 
@@ -806,22 +820,34 @@ export default function CinemaHall3D() {
       // Dynamic 3D Volumetric Projector Beam Animation & Flicker
       const video = videoRef.current;
       const time = performance.now() * 0.001;
-      const isPlaying = !!(video && !video.paused && video.readyState >= 2);
-      beamMat.opacity = (isPlaying ? 0.075 : 0.04) + Math.sin(time * 24) * 0.012;
+      let hasFrame = false;
+
+      // Draw Trailer Video onto Screen Canvas (supporting readyState >= 1 or ticking currentTime)
+      if (video && !video.paused && (video.readyState >= 1 || video.currentTime > 0)) {
+        try {
+          screenCtx.drawImage(video, 0, 0, screenCanvas.width, screenCanvas.height);
+          screenTexture.needsUpdate = true;
+          hasFrame = true;
+        } catch (e) {
+          // ignore transient decoding frame error
+        }
+      }
+
+      const isPlaying = hasFrame || !!(video && !video.paused);
+      beamMat.opacity = (isPlaying ? 0.08 : 0.035) + Math.sin(time * 24) * 0.012;
       dustMotes.rotation.z = time * 0.035;
 
       // Realistic Auditorium Screen Spill Dynamic Lighting
       if (isPlaying) {
         screenSpillLight.intensity = 2.4 + Math.sin(time * 8) * 0.45;
         screenLight.intensity = 4.2 + Math.sin(time * 14) * 0.55;
+      } else {
+        screenSpillLight.intensity = 0.6;
+        screenLight.intensity = 1.2;
       }
 
-      // Draw Trailer Video onto Screen Canvas
-      if (video && video.readyState >= 2 && !video.paused) {
-        screenCtx.drawImage(video, 0, 0, screenCanvas.width, screenCanvas.height);
-        screenTexture.needsUpdate = true;
-      } else {
-        // Draw Obsidian Standby Screen with Amber Title
+      if (!hasFrame) {
+        // Draw Obsidian Standby Screen with Amber Title and Interactive Play Button
         const grad = screenCtx.createRadialGradient(
           screenCanvas.width / 2, screenCanvas.height / 2, 50,
           screenCanvas.width / 2, screenCanvas.height / 2, screenCanvas.width / 1.2
@@ -869,8 +895,8 @@ export default function CinemaHall3D() {
         screenCtx.fillText(selectedMovie.title, screenCanvas.width / 2, screenCanvas.height / 2 + 85);
 
         screenCtx.font = '700 24px "Inter", sans-serif';
-        screenCtx.fillStyle = '#94a3b8';
-        screenCtx.fillText('CLICK SCREEN OR BUTTON TO PLAY TRAILER', screenCanvas.width / 2, screenCanvas.height / 2 + 130);
+        screenCtx.fillStyle = '#f59e0b';
+        screenCtx.fillText('▶ CLICK SCREEN TO PLAY 4K TRAILER', screenCanvas.width / 2, screenCanvas.height / 2 + 130);
 
         screenTexture.needsUpdate = true;
       }
@@ -1069,23 +1095,39 @@ export default function CinemaHall3D() {
     });
   }, [cameraPreset, activeSeatView]);
 
-  // Handle HTML5 video trailer play/pause sync
+  // Handle HTML5 video trailer play/pause sync & browser autoplay policy
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
+    video.defaultMuted = true;
     video.muted = isTrailerMuted;
+
+    const onPlay = () => playTrailer();
+    const onPause = () => pauseTrailer();
+    video.addEventListener('play', onPlay);
+    video.addEventListener('pause', onPause);
+
     if (isTrailerPlaying && !isTrailerStopped) {
-      video.play().catch(() => {
-        video.muted = true;
-        video.play().catch(() => { });
-      });
+      const p = video.play();
+      if (p !== undefined) {
+        p.catch(() => {
+          // If browser policy blocks audio autoplay, fallback to muted
+          video.muted = true;
+          video.play().catch(() => {});
+        });
+      }
     } else {
       video.pause();
       if (isTrailerStopped) {
         video.currentTime = 0;
       }
     }
+
+    return () => {
+      video.removeEventListener('play', onPlay);
+      video.removeEventListener('pause', onPause);
+    };
   }, [isTrailerPlaying, isTrailerStopped, isTrailerMuted, selectedMovie]);
 
   // Pricing calculations
@@ -1100,22 +1142,33 @@ export default function CinemaHall3D() {
 
   return (
     <div className="fixed inset-0 z-50 bg-[#030307] flex flex-col overflow-hidden animate-in fade-in duration-300">
-      {/* Video Source for Three.js Texture */}
+      {/* Video Source for Three.js Texture (In-viewport to prevent browser GPU throttling) */}
       <video
         ref={videoRef}
         src={selectedMovie.trailerUrl}
         playsInline
         loop
+        autoPlay
         muted={isTrailerMuted}
         preload="auto"
+        crossOrigin="anonymous"
+        onError={() => {
+          if (videoRef.current && !videoRef.current.dataset.fallback) {
+            videoRef.current.dataset.fallback = '1';
+            videoRef.current.src = '/videos/trailer.mp4';
+            videoRef.current.load();
+            videoRef.current.play().catch(() => {});
+          }
+        }}
         style={{
           position: 'fixed',
-          top: -9999,
-          left: -9999,
-          width: 1,
-          height: 1,
+          bottom: 10,
+          right: 10,
+          width: 320,
+          height: 180,
           opacity: 0.001,
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          zIndex: -999,
         }}
       />
 
@@ -1273,11 +1326,28 @@ export default function CinemaHall3D() {
             </div>
 
             <button
-              onClick={() => (isTrailerPlaying ? pauseTrailer() : playTrailer())}
-              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold flex items-center gap-1.5 transition-colors"
+              onClick={() => {
+                const vid = videoRef.current;
+                if (vid) {
+                  if (vid.paused) {
+                    vid.muted = isTrailerMuted;
+                    vid.play().then(() => playTrailer()).catch(() => {
+                      vid.muted = true;
+                      vid.play().then(() => playTrailer()).catch(() => {});
+                    });
+                  } else {
+                    vid.pause();
+                    pauseTrailer();
+                  }
+                } else {
+                  if (isTrailerPlaying) pauseTrailer();
+                  else playTrailer();
+                }
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-amber-500/25 active:scale-95"
             >
-              {isTrailerPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-              <span>{isTrailerPlaying ? 'Pause' : 'Play'}</span>
+              {isTrailerPlaying && !isTrailerStopped ? <Pause className="w-3.5 h-3.5 stroke-[2.5]" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+              <span>{isTrailerPlaying && !isTrailerStopped ? 'Pause' : 'Play Trailer'}</span>
             </button>
 
             <button

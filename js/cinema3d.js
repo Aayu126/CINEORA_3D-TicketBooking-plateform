@@ -2145,12 +2145,13 @@ class CinemaHall3D {
     this.trailerVideo.setAttribute('muted', '');
     this.trailerVideo.preload = 'auto';
     this.trailerVideo.style.position = 'fixed';
-    this.trailerVideo.style.top = '-9999px';
-    this.trailerVideo.style.left = '-9999px';
-    this.trailerVideo.style.width = '1px';
-    this.trailerVideo.style.height = '1px';
+    this.trailerVideo.style.bottom = '10px';
+    this.trailerVideo.style.right = '10px';
+    this.trailerVideo.style.width = '320px';
+    this.trailerVideo.style.height = '180px';
     this.trailerVideo.style.opacity = '0.001';
     this.trailerVideo.style.pointerEvents = 'none';
+    this.trailerVideo.style.zIndex = '-999';
     document.body.appendChild(this.trailerVideo);
 
     const movie = this.options.movie || (window.CINE_DATA ? window.CINE_DATA.movies[0] : null);
@@ -2158,14 +2159,21 @@ class CinemaHall3D {
     
     this.trailerVideo.onerror = () => {
       console.warn('Trailer path error for:', this.trailerVideo.src);
-      if (!this.trailerVideo.dataset.triedPublic && videoUrl.startsWith('videos/')) {
-        this.trailerVideo.dataset.triedPublic = '1';
-        this.trailerVideo.src = 'public/' + videoUrl;
+      if (!this.trailerVideo.dataset.triedSlash && !videoUrl.startsWith('/')) {
+        this.trailerVideo.dataset.triedSlash = '1';
+        this.trailerVideo.src = '/' + videoUrl;
         this.trailerVideo.load();
+        this.trailerVideo.play().catch(() => {});
+      } else if (!this.trailerVideo.dataset.triedPublic) {
+        this.trailerVideo.dataset.triedPublic = '1';
+        this.trailerVideo.src = 'public/' + videoUrl.replace(/^\//, '');
+        this.trailerVideo.load();
+        this.trailerVideo.play().catch(() => {});
       } else if (!this.trailerVideo.dataset.triedGeneric) {
         this.trailerVideo.dataset.triedGeneric = '1';
         this.trailerVideo.src = 'videos/trailer.mp4';
         this.trailerVideo.load();
+        this.trailerVideo.play().catch(() => {});
       }
     };
 
@@ -2305,7 +2313,8 @@ class CinemaHall3D {
     const title = movie ? movie.title : 'CINEORA';
 
     // A. LIVE TRAILER VIDEO PLAYBACK ON THEATER SCREEN
-    if (this.isTrailerPlaying && this.trailerVideo && (this.trailerVideo.readyState >= 1 || !this.trailerVideo.paused)) {
+    const isPlaying = this.trailerVideo && !this.trailerVideo.paused && (this.trailerVideo.readyState >= 1 || this.trailerVideo.currentTime > 0);
+    if (isPlaying) {
       // 1. Backing
       ctx.fillStyle = '#010103';
       ctx.fillRect(0, 0, 2048, 1024);
@@ -2313,10 +2322,8 @@ class CinemaHall3D {
       // 2. Video frame rendered in 2.39:1 Cinemascope anamorphic ratio
       let drewVideo = false;
       try {
-        if (this.trailerVideo.videoWidth > 0) {
-          ctx.drawImage(this.trailerVideo, 0, 85, 2048, 854);
-          drewVideo = true;
-        }
+        ctx.drawImage(this.trailerVideo, 0, 85, 2048, 854);
+        drewVideo = true;
       } catch (e) {
         // Fallback to videoTexture directly if available
       }
