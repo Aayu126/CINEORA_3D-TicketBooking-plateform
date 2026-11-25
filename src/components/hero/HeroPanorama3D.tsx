@@ -18,6 +18,7 @@ interface CinemaScreenCurveProps {
 
 function CinemaScreenCurve({ movie, relIndex, isSelected, onSelect }: CinemaScreenCurveProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const subGroupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
   // Load high-res texture cleanly without any color box tint
@@ -42,6 +43,16 @@ function CinemaScreenCurve({ movie, relIndex, isSelected, onSelect }: CinemaScre
 
   // Culling screens that are wrapped around out of panoramic view (|relIndex| > 3)
   const isVisible = Math.abs(relIndex) <= 3.5;
+
+  // Organic continuous 3D floating and breathing animation
+  useFrame(({ clock }) => {
+    if (!subGroupRef.current) return;
+    const t = clock.getElapsedTime();
+    const floatY = Math.sin(t * 1.8 + relIndex * 0.7) * 0.09;
+    const tiltZ = Math.sin(t * 1.3 + relIndex * 0.4) * 0.015;
+    subGroupRef.current.position.y = floatY;
+    subGroupRef.current.rotation.z = tiltZ;
+  });
 
   useEffect(() => {
     if (!groupRef.current) return;
@@ -76,52 +87,54 @@ function CinemaScreenCurve({ movie, relIndex, isSelected, onSelect }: CinemaScre
 
   return (
     <group ref={groupRef} position={[targetX, 0, targetZ]} rotation={[0, targetRotY, 0]}>
-      <group
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(movie);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          setHovered(true);
-          document.body.style.cursor = 'pointer';
-        }}
-        onPointerOut={() => {
-          setHovered(false);
-          document.body.style.cursor = 'default';
-        }}
-      >
-        {/* Front Poster Surface (Facing the viewer!) */}
-        <mesh position={[0, 0, 0.02]} castShadow>
-          <planeGeometry args={[3.2, 4.8, 16, 1]} />
-          <meshStandardMaterial
-            map={texture}
-            roughness={0.25}
-            metalness={0.08}
-            side={THREE.FrontSide}
-          />
-        </mesh>
+      <group ref={subGroupRef}>
+        <group
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect(movie);
+          }}
+          onPointerOver={(e) => {
+            e.stopPropagation();
+            setHovered(true);
+            document.body.style.cursor = 'pointer';
+          }}
+          onPointerOut={() => {
+            setHovered(false);
+            document.body.style.cursor = 'default';
+          }}
+        >
+          {/* Front Poster Surface (Facing the viewer!) */}
+          <mesh position={[0, 0, 0.02]} castShadow>
+            <planeGeometry args={[3.2, 4.8, 16, 1]} />
+            <meshStandardMaterial
+              map={texture}
+              roughness={0.25}
+              metalness={0.08}
+              side={THREE.FrontSide}
+            />
+          </mesh>
 
-        {/* Brushed Champagne Platinum Metallic Bezel */}
-        <mesh position={[0, 0, 0]}>
-          <planeGeometry args={[3.36, 4.96]} />
-          <meshStandardMaterial
-            color={isSelected ? 0xd97706 : 0x334155}
-            roughness={0.25}
-            metalness={0.85}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
+          {/* Brushed Champagne Platinum Metallic Bezel */}
+          <mesh position={[0, 0, 0]}>
+            <planeGeometry args={[3.36, 4.96]} />
+            <meshStandardMaterial
+              color={isSelected ? 0xd97706 : 0x334155}
+              roughness={0.25}
+              metalness={0.85}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
 
-        {/* Under-Screen Focus Spotlight Glow on Active/Hovered Screen */}
-        {(isSelected || hovered) && (
-          <pointLight
-            position={[0, -2.4, 0.8]}
-            color={isSelected ? '#f59e0b' : '#38bdf8'}
-            intensity={isSelected ? 2.2 : 1.0}
-            distance={5.0}
-          />
-        )}
+          {/* Under-Screen Focus Spotlight Glow on Active/Hovered Screen */}
+          {(isSelected || hovered) && (
+            <pointLight
+              position={[0, -2.4, 0.8]}
+              color={isSelected ? '#f59e0b' : '#38bdf8'}
+              intensity={isSelected ? 2.2 : 1.0}
+              distance={5.0}
+            />
+          )}
+        </group>
       </group>
     </group>
   );
@@ -142,6 +155,8 @@ function CurvedScreensRing() {
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
   const dragAccum = useRef(0);
+  const particlesRef = useRef<THREE.Points>(null);
+  const ringMatRef = useRef<THREE.MeshBasicMaterial>(null);
 
   // Floating Golden Particles
   const particles = useMemo(() => {
@@ -155,14 +170,43 @@ function CurvedScreensRing() {
     return pos;
   }, []);
 
+  // 3D Parallax Camera & Dynamic Atmospheric Animation
+  useFrame(({ clock, mouse, camera }) => {
+    // Dynamic camera parallax responding gently to cursor
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouse.x * 1.3, 0.04);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0.4 + mouse.y * 0.35, 0.04);
+    camera.lookAt(0, 0, -2);
+
+    // 3D dynamic swirling motes
+    if (particlesRef.current) {
+      particlesRef.current.rotation.y = clock.getElapsedTime() * 0.035;
+      particlesRef.current.rotation.x = Math.sin(clock.getElapsedTime() * 0.02) * 0.04;
+    }
+
+    // Dynamic glowing floor guide ribbon pulsing
+    if (ringMatRef.current) {
+      ringMatRef.current.opacity = 0.45 + Math.sin(clock.getElapsedTime() * 2.2) * 0.25;
+    }
+  });
+
+  // Smooth automatic slideshow rotation when user is idle
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (!isDragging.current) {
+        nextMovie();
+      }
+    }, 7500);
+    return () => clearInterval(timer);
+  }, [nextMovie]);
+
   return (
     <>
       <ambientLight intensity={1.3} />
       <directionalLight position={[0, 14, 12]} intensity={2.0} color="#fffcf5" castShadow />
       <pointLight position={[0, 6, 4]} intensity={1.5} color="#fffbeb" distance={20} />
 
-      {/* Floating Ambient Golden Bokeh Motes */}
-      <points>
+      {/* Floating Ambient Golden Bokeh Motes with 3D Swirl */}
+      <points ref={particlesRef}>
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
@@ -235,10 +279,10 @@ function CurvedScreensRing() {
         />
       </mesh>
 
-      {/* Elegant Curved Golden Floor Guide Ribbon */}
+      {/* Elegant Curved Golden Floor Guide Ribbon with Pulsing Glow */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.78, 0]}>
         <ringGeometry args={[11.3, 11.5, 64, 1, 0, Math.PI]} />
-        <meshBasicMaterial color={0xf59e0b} transparent opacity={0.6} />
+        <meshBasicMaterial ref={ringMatRef} color={0xf59e0b} transparent opacity={0.6} />
       </mesh>
     </>
   );

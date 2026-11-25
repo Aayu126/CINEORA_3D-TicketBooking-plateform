@@ -551,6 +551,45 @@ export default function CinemaHall3D() {
       });
     });
 
+    // L. 3D Volumetric Projector Light Beam (Booth to Cinemascope Screen)
+    const beamLength = 49.2;
+    const beamGeo = new THREE.CylinderGeometry(0.35, 14.8, beamLength, 24, 1, true);
+    beamGeo.rotateX(Math.PI / 2);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0xbae6fd,
+      transparent: true,
+      opacity: 0.05,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const projectorBeam = new THREE.Mesh(beamGeo, beamMat);
+    projectorBeam.position.set(0, 10.4, 7.5);
+    projectorBeam.lookAt(0, 6.0, -17.0);
+    hallGroup.add(projectorBeam);
+
+    // Dynamic Dust Motes drifting in the projector beam
+    const dustCount = 80;
+    const dustPositions = new Float32Array(dustCount * 3);
+    for (let i = 0; i < dustCount; i++) {
+      const prog = Math.random();
+      const spread = THREE.MathUtils.lerp(0.4, 12.0, prog);
+      dustPositions[i * 3] = (Math.random() - 0.5) * spread;
+      dustPositions[i * 3 + 1] = THREE.MathUtils.lerp(14.8, 6.0, prog) + (Math.random() - 0.5) * 1.8;
+      dustPositions[i * 3 + 2] = THREE.MathUtils.lerp(32.0, -17.0, prog);
+    }
+    const dustGeo = new THREE.BufferGeometry();
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+    const dustMat = new THREE.PointsMaterial({
+      size: 0.1,
+      color: 0xe0f2fe,
+      transparent: true,
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending,
+    });
+    const dustMotes = new THREE.Points(dustGeo, dustMat);
+    hallGroup.add(dustMotes);
+
     scene.add(hallGroup);
 
     // =========================================================================
@@ -764,8 +803,20 @@ export default function CinemaHall3D() {
 
       controls.update();
 
-      // Draw Trailer Video onto Screen Canvas
+      // Dynamic 3D Volumetric Projector Beam Animation & Flicker
       const video = videoRef.current;
+      const time = performance.now() * 0.001;
+      const isPlaying = !!(video && !video.paused && video.readyState >= 2);
+      beamMat.opacity = (isPlaying ? 0.075 : 0.04) + Math.sin(time * 24) * 0.012;
+      dustMotes.rotation.z = time * 0.035;
+
+      // Realistic Auditorium Screen Spill Dynamic Lighting
+      if (isPlaying) {
+        screenSpillLight.intensity = 2.4 + Math.sin(time * 8) * 0.45;
+        screenLight.intensity = 4.2 + Math.sin(time * 14) * 0.55;
+      }
+
+      // Draw Trailer Video onto Screen Canvas
       if (video && video.readyState >= 2 && !video.paused) {
         screenCtx.drawImage(video, 0, 0, screenCanvas.width, screenCanvas.height);
         screenTexture.needsUpdate = true;

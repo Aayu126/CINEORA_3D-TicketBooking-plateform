@@ -59,13 +59,14 @@ export default function MovieCatalog() {
           return (
             <motion.div
               key={movie.id}
-              whileHover={{ y: -6 }}
-              transition={{ duration: 0.2 }}
+              whileHover={{ y: -8, scale: 1.025, rotateY: 2.5 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              style={{ transformStyle: 'preserve-3d', perspective: 800 }}
               onClick={() => selectMovie(movie)}
               className={`group relative rounded-2xl overflow-hidden bg-white border transition-all cursor-pointer flex flex-col ${
                 isSelected
                   ? 'border-amber-500 shadow-xl shadow-amber-500/20 ring-2 ring-amber-400/40'
-                  : 'border-slate-200/90 hover:border-amber-400 shadow-md hover:shadow-xl'
+                  : 'border-slate-200/90 hover:border-amber-400 shadow-md hover:shadow-2xl'
               }`}
             >
               {/* Poster Container */}

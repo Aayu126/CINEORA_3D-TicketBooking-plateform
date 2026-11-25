@@ -1,21 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Film, ShieldCheck, Heart, Sparkles } from 'lucide-react';
+import { Film, ShieldCheck, Heart } from 'lucide-react';
 
 export default function Footer() {
-  const techStack = [
-    'Next.js 14',
-    'React 18',
-    'TypeScript',
-    'Three.js / React Three Fiber',
-    'GSAP 3',
-    'Motion (Framer)',
-    'Lenis',
-    'Tailwind CSS',
-    'Zustand',
-    'Vercel Ready',
-  ];
 
   return (
     <footer className="bg-[#050711] border-t border-slate-800/80 pt-16 pb-12 text-slate-400">
@@ -65,24 +53,6 @@ export default function Footer() {
               <li className="hover:text-amber-400 transition-colors cursor-pointer">Cineora Exclusive VIP Lounge</li>
               <li className="hover:text-amber-400 transition-colors cursor-pointer">Mumbai & Bengaluru Flagships</li>
             </ul>
-          </div>
-        </div>
-
-        {/* Tech Stack Banner */}
-        <div className="p-4 rounded-2xl bg-[#090c1a] border border-slate-800/80 mb-8 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 text-amber-400 font-bold uppercase tracking-wider">
-            <Sparkles className="w-4 h-4" />
-            <span>Tech Stack:</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {techStack.map((tech) => (
-              <span
-                key={tech}
-                className="px-2.5 py-1 rounded-lg bg-slate-900 text-slate-300 font-semibold border border-slate-800 text-[11px]"
-              >
-                {tech}
-              </span>
-            ))}
           </div>
         </div>
 

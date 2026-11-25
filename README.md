@@ -1,17 +1,6 @@
 # CINEORA - Next-Gen 3D Cinema Experience & Ticket Booking Platform
 
-An ultra-realistic 3D cinema booking platform built with the modern cutting-edge frontend ecosystem:
-
-- **Next.js 14 (App Router)** - Server & Client architecture, optimized routing, and static generation.
-- **React 18** - Component hierarchy and state synchronization.
-- **TypeScript** - 100% strict type safety for movies, auditoriums, seats, and booking models.
-- **Three.js & React Three Fiber (@react-three/fiber, @react-three/drei)** - Real-time 3D WebGL rendering.
-- **GSAP 3 (@gsap/react)** - Smooth camera transitions, carousel inertia, and 3D positioning.
-- **Motion (Framer Motion)** - Fluid UI modal animations and card transitions.
-- **Lenis** - Smooth kinetic momentum scrolling.
-- **Tailwind CSS** - Modern dark-mode cinema aesthetic with obsidian `#030307` and amber `#f59e0b`.
-- **Zustand** - High-performance reactive state management with `subscribeWithSelector`.
-- **Vercel** - Production build verified with zero compilation errors, ready for 1-click Vercel deployment.
+An ultra-realistic, interactive 3D cinema booking platform featuring real-time WebGL rendering, architectural auditorium visualization, official trailer projection streaming, and full-featured seat booking.
 
 ---
 

@@ -31,9 +31,10 @@ export default function TheatreShowcase() {
           return (
             <motion.div
               key={hall.id}
-              whileHover={{ y: -8 }}
-              transition={{ duration: 0.25 }}
-              className="rounded-3xl p-6 sm:p-7 bg-white border border-slate-200/90 hover:border-amber-400 shadow-xl hover:shadow-2xl transition-all flex flex-col justify-between"
+              whileHover={{ y: -10, rotateX: 3, rotateY: -3, scale: 1.02 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+              style={{ transformStyle: 'preserve-3d', perspective: 1000 }}
+              className="rounded-3xl p-6 sm:p-7 bg-white border border-slate-200/90 hover:border-amber-400 shadow-xl hover:shadow-2xl transition-all flex flex-col justify-between group"
             >
               <div>
                 {/* Header Icon + Badge */}
