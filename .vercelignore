@@ -1,0 +1,12 @@
+# Vercel Deployment Ignore
+skills/
+.agents/
+.claude/
+.cursor/
+.gemini/
+.mcp.json
+bin/
+scripts/
+videos/
+models/
+*.log
