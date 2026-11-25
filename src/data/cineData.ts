@@ -1,11 +1,12 @@
 import { Movie, HallStructure, Theatre, SeatTier, SnackItem, City } from '@/types';
 
 export const CINE_CITIES: City[] = [
-  { id: 'chennai', name: 'Chennai', popular: true },
   { id: 'mumbai', name: 'Mumbai', popular: true },
+  { id: 'chennai', name: 'Chennai', popular: true },
   { id: 'bengaluru', name: 'Bengaluru', popular: true },
   { id: 'delhi', name: 'Delhi-NCR', popular: true },
   { id: 'hyderabad', name: 'Hyderabad', popular: true },
+  { id: 'pune', name: 'Pune', popular: true },
   { id: 'kochi', name: 'Kochi', popular: false },
 ];
 
@@ -298,9 +299,61 @@ export const MOVIES: Movie[] = [
 ];
 
 export const THEATRES: Theatre[] = [
+  // Mumbai
   {
-    id: 'luxe-phoenix',
+    id: 'pvr-jio-drive-mumbai',
+    name: 'PVR Maison, Jio World Drive',
+    city: 'mumbai',
+    location: 'BKC, Bandra Kurla Complex, Mumbai',
+    distance: '3.2 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium (400 Seats)',
+    facilities: ['400 Seats Capacity', 'Cantilevered Balcony Seating', 'Acoustic Oak Walls', 'VIP Sleeper Beds', 'Dolby Atmos 128ch'],
+    shows: [
+      { time: '10:30 AM', format: 'Dolby Atmos 2D', priceFactor: 1.1, available: 320 },
+      { time: '02:00 PM', format: 'LUXE VIP Recliner', priceFactor: 1.5, available: 180 },
+      { time: '06:30 PM', format: 'Grand Wood Balcony Atmos', priceFactor: 1.35, available: 94 },
+      { time: '10:00 PM', format: 'Dolby Atmos 2D', priceFactor: 1.2, available: 210 },
+    ],
+  },
+  {
+    id: 'inox-palladium-mumbai',
+    name: 'PVR Director’s Cut, Palladium Mall',
+    city: 'mumbai',
+    location: 'Lower Parel, Mumbai',
+    distance: '5.8 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium (400 Seats)',
+    facilities: ['IMAX Laser 4K', 'Motorized Daybeds', 'In-Seat Butler Dining', 'Dolby Atmos'],
+    shows: [
+      { time: '11:15 AM', format: 'IMAX Laser 2D', priceFactor: 1.35, available: 290 },
+      { time: '03:15 PM', format: '4DX 3D Dynamic', priceFactor: 1.55, available: 160 },
+      { time: '07:00 PM', format: 'IMAX Laser 3D', priceFactor: 1.45, available: 75 },
+      { time: '10:15 PM', format: 'IMAX Laser 2D', priceFactor: 1.3, available: 190 },
+    ],
+  },
+  {
+    id: 'cineora-bandra-mumbai',
+    name: 'Cineora Exclusive VIP Lounge & Suite',
+    city: 'mumbai',
+    location: 'Bandra West, Mumbai',
+    distance: '4.1 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium & Balcony (400 Seats)',
+    facilities: ['Private Balcony Boxes', 'Motorized Daybeds', 'Oak Acoustic Diffusers', 'Gourmet Lounge'],
+    shows: [
+      { time: '12:00 PM', format: 'VIP Daybed Lounge', priceFactor: 1.6, available: 140 },
+      { time: '04:15 PM', format: 'Private Balcony Box', priceFactor: 1.8, available: 85 },
+      { time: '08:00 PM', format: 'Couples Recliner Suite', priceFactor: 1.7, available: 42 },
+      { time: '11:00 PM', format: 'Late Night VIP Atmos', priceFactor: 1.5, available: 115 },
+    ],
+  },
+
+  // Chennai
+  {
+    id: 'luxe-phoenix-chennai',
     name: 'Jazz Cinemas Luxe, Phoenix Marketcity',
+    city: 'chennai',
     location: 'Velachery, Chennai',
     distance: '5.1 km away',
     structure: 'grand-wood',
@@ -316,6 +369,7 @@ export const THEATRES: Theatre[] = [
   {
     id: 'pvr-vr-chennai',
     name: 'PVR INOX Luxe, VR Chennai',
+    city: 'chennai',
     location: 'Anna Nagar, Chennai',
     distance: '7.8 km away',
     structure: 'grand-wood',
@@ -329,8 +383,9 @@ export const THEATRES: Theatre[] = [
     ],
   },
   {
-    id: 'inox-marine-lines',
+    id: 'cineora-nungambakkam-chennai',
     name: 'Cineora Exclusive VIP Lounge & Suite',
+    city: 'chennai',
     location: 'Nungambakkam, Chennai',
     distance: '3.4 km away',
     structure: 'grand-wood',
@@ -341,6 +396,160 @@ export const THEATRES: Theatre[] = [
       { time: '03:45 PM', format: 'Private Balcony Box', priceFactor: 1.8, available: 92 },
       { time: '07:30 PM', format: 'Couples Recliner Suite', priceFactor: 1.7, available: 48 },
       { time: '10:30 PM', format: 'Late Night VIP Atmos', priceFactor: 1.5, available: 120 },
+    ],
+  },
+
+  // Bengaluru
+  {
+    id: 'pvr-vega-city-bengaluru',
+    name: 'PVR Superplex, Vega City Mall',
+    city: 'bengaluru',
+    location: 'Bannerghatta Main Road, Bengaluru',
+    distance: '4.2 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium (400 Seats)',
+    facilities: ['IMAX Laser 4K', 'Dolby Atmos 128ch', 'Acoustic Oak Panels', 'Balcony Seating'],
+    shows: [
+      { time: '10:15 AM', format: 'IMAX Laser 2D', priceFactor: 1.25, available: 310 },
+      { time: '01:45 PM', format: '4DX 3D Dynamic', priceFactor: 1.5, available: 170 },
+      { time: '05:30 PM', format: 'Grand Wood Balcony Atmos', priceFactor: 1.35, available: 88 },
+      { time: '09:00 PM', format: 'IMAX Laser 2D', priceFactor: 1.2, available: 230 },
+    ],
+  },
+  {
+    id: 'inox-forum-bengaluru',
+    name: 'Cineora Luxe Dolby Cinema, Forum Mall',
+    city: 'bengaluru',
+    location: 'Koramangala, Bengaluru',
+    distance: '3.1 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium & Balcony (400 Seats)',
+    facilities: ['VIP Recliner Beds', 'Private Balcony Suite', 'Oak Diffusers', 'Butler Service'],
+    shows: [
+      { time: '11:30 AM', format: 'VIP Daybed Lounge', priceFactor: 1.55, available: 155 },
+      { time: '03:30 PM', format: 'Private Balcony Box', priceFactor: 1.75, available: 90 },
+      { time: '07:15 PM', format: 'Couples Recliner Suite', priceFactor: 1.65, available: 52 },
+      { time: '10:45 PM', format: 'Late Night VIP Atmos', priceFactor: 1.45, available: 135 },
+    ],
+  },
+
+  // Delhi-NCR
+  {
+    id: 'pvr-directors-cut-delhi',
+    name: 'PVR Director’s Cut, Ambience Mall',
+    city: 'delhi',
+    location: 'Vasant Kunj, New Delhi',
+    distance: '6.4 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium (400 Seats)',
+    facilities: ['400 Seats Capacity', 'Ultra-Luxury Recliners', 'Dolby Atmos 128ch', 'Curved Cinemascope'],
+    shows: [
+      { time: '11:00 AM', format: 'Dolby Atmos 2D', priceFactor: 1.2, available: 295 },
+      { time: '02:45 PM', format: 'LUXE VIP Recliner', priceFactor: 1.6, available: 145 },
+      { time: '06:30 PM', format: 'Grand Wood Balcony Atmos', priceFactor: 1.4, available: 78 },
+      { time: '10:15 PM', format: 'Dolby Atmos 2D', priceFactor: 1.25, available: 220 },
+    ],
+  },
+  {
+    id: 'cineora-select-citywalk-delhi',
+    name: 'Cineora IMAX Laser Premiere',
+    city: 'delhi',
+    location: 'Select Citywalk, Saket, New Delhi',
+    distance: '4.8 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium & Balcony (400 Seats)',
+    facilities: ['IMAX Laser 4K', 'Balcony Private Boxes', 'Acoustic Wood Ribs', 'Sleeper Beds'],
+    shows: [
+      { time: '10:30 AM', format: 'IMAX Laser 2D', priceFactor: 1.35, available: 310 },
+      { time: '02:15 PM', format: '4DX 3D Dynamic', priceFactor: 1.55, available: 180 },
+      { time: '06:00 PM', format: 'IMAX Laser 3D', priceFactor: 1.45, available: 95 },
+      { time: '09:45 PM', format: 'IMAX Laser 2D', priceFactor: 1.3, available: 240 },
+    ],
+  },
+
+  // Hyderabad
+  {
+    id: 'prasads-multiplex-hyderabad',
+    name: 'Prasads Multiplex, IMAX Road',
+    city: 'hyderabad',
+    location: 'Necklace Road, Hyderabad',
+    distance: '2.5 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium (400 Seats)',
+    facilities: ['Legendary Giant Screen', 'Balcony Tier Risers', 'Dolby Atmos 128ch', '400 Seats Capacity'],
+    shows: [
+      { time: '10:45 AM', format: 'Dolby Atmos 2D', priceFactor: 1.1, available: 340 },
+      { time: '02:15 PM', format: 'LUXE VIP Recliner', priceFactor: 1.45, available: 190 },
+      { time: '06:00 PM', format: 'Grand Wood Balcony Atmos', priceFactor: 1.3, available: 110 },
+      { time: '09:30 PM', format: 'Dolby Atmos 2D', priceFactor: 1.15, available: 275 },
+    ],
+  },
+  {
+    id: 'amb-cinemas-hyderabad',
+    name: 'AMB Cinemas, Sarath City Capital Mall',
+    city: 'hyderabad',
+    location: 'Gachibowli, Hyderabad',
+    distance: '5.6 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium & Balcony (400 Seats)',
+    facilities: ['Laser Projection', 'VIP Daybeds', 'Acoustic Oak Walls', 'VIP Lounge Service'],
+    shows: [
+      { time: '11:15 AM', format: 'VIP Daybed Lounge', priceFactor: 1.5, available: 165 },
+      { time: '03:00 PM', format: 'Private Balcony Box', priceFactor: 1.7, available: 95 },
+      { time: '06:45 PM', format: 'Couples Recliner Suite', priceFactor: 1.6, available: 60 },
+      { time: '10:15 PM', format: 'Late Night VIP Atmos', priceFactor: 1.4, available: 150 },
+    ],
+  },
+
+  // Pune
+  {
+    id: 'pvr-phoenix-pune',
+    name: 'PVR INOX, Phoenix Marketcity',
+    city: 'pune',
+    location: 'Viman Nagar, Pune',
+    distance: '3.8 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium (400 Seats)',
+    facilities: ['400 Seats Capacity', 'Dolby Atmos 128ch', 'Acoustic Panel Slats', 'VIP Sleeper Beds'],
+    shows: [
+      { time: '10:30 AM', format: 'Dolby Atmos 2D', priceFactor: 1.0, available: 325 },
+      { time: '02:00 PM', format: 'LUXE VIP Recliner', priceFactor: 1.4, available: 175 },
+      { time: '05:45 PM', format: 'Grand Wood Balcony Atmos', priceFactor: 1.25, available: 98 },
+      { time: '09:15 PM', format: 'Dolby Atmos 2D', priceFactor: 1.1, available: 260 },
+    ],
+  },
+  {
+    id: 'cinepolis-westend-pune',
+    name: 'Cinepolis VIP, Westend Mall',
+    city: 'pune',
+    location: 'Aundh, Pune',
+    distance: '5.2 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium & Balcony (400 Seats)',
+    facilities: ['Motorized Recliners', 'Private Balcony Boxes', 'In-Seat Dining', 'Dolby Atmos'],
+    shows: [
+      { time: '11:45 AM', format: 'VIP Daybed Lounge', priceFactor: 1.5, available: 150 },
+      { time: '03:30 PM', format: 'Private Balcony Box', priceFactor: 1.7, available: 88 },
+      { time: '07:15 PM', format: 'Couples Recliner Suite', priceFactor: 1.6, available: 50 },
+      { time: '10:30 PM', format: 'Late Night VIP Atmos', priceFactor: 1.4, available: 130 },
+    ],
+  },
+
+  // Kochi
+  {
+    id: 'pvr-lulu-kochi',
+    name: 'PVR Superplex, LuLu Shopping Mall',
+    city: 'kochi',
+    location: 'Edappally, Kochi',
+    distance: '3.0 km away',
+    structure: 'grand-wood',
+    structureName: 'Grand Royal Wood Auditorium (400 Seats)',
+    facilities: ['400 Seats Capacity', '4DX 3D', 'Dolby Atmos 128ch', 'Balcony Seating'],
+    shows: [
+      { time: '10:30 AM', format: 'Dolby Atmos 2D', priceFactor: 1.0, available: 310 },
+      { time: '02:00 PM', format: 'LUXE VIP Recliner', priceFactor: 1.4, available: 160 },
+      { time: '06:00 PM', format: 'Grand Wood Balcony Atmos', priceFactor: 1.25, available: 84 },
+      { time: '09:30 PM', format: 'Dolby Atmos 2D', priceFactor: 1.1, available: 240 },
     ],
   },
 ];

@@ -95,7 +95,16 @@ export const useCinemaStore = create<CinemaStore>()(
     snacks: {},
     bookedTickets: getStoredTickets(),
 
-    setCity: (city) => set({ userCity: city }),
+    setCity: (city) => {
+      const cityTheatres = THEATRES.filter((t) => t.city === city);
+      const newTheatre = cityTheatres.length > 0 ? cityTheatres[0] : THEATRES[0];
+      set({
+        userCity: city,
+        selectedTheatre: newTheatre,
+        selectedShowtime: newTheatre.shows[0],
+        activeStructure: newTheatre.structure,
+      });
+    },
     setCategory: (category) => set({ selectedCategory: category }),
     
     selectMovie: (movie) => {

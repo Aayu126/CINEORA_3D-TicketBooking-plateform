@@ -44,6 +44,7 @@ export interface ShowSlot {
 export interface Theatre {
   id: string;
   name: string;
+  city: string;
   location: string;
   distance: string;
   structure: StructureId;

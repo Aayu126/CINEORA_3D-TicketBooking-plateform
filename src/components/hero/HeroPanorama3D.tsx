@@ -31,17 +31,17 @@ function CinemaScreenCurve({ movie, relIndex, isSelected, onSelect }: CinemaScre
 
   // Panoramic Arc Geometry:
   // Active movie is always at relIndex = 0 (centered, z = 0, facing directly forward)
-  // Neighboring movies curve outward and backward (z < 0), always facing towards the viewer!
-  const angleStep = 0.38; // ~21.8 degrees per screen
+  // Neighboring movies curve inward and backward (z < 0), with negative rotation facing towards the viewer!
+  const angleStep = 0.36; // ~20.6 degrees per screen
   const theta = relIndex * angleStep;
-  const radius = 11.5;
+  const radius = 11.2;
 
   const targetX = Math.sin(theta) * radius;
-  const targetZ = Math.cos(theta) * radius - radius; // z <= 0 always!
-  const targetRotY = theta * 0.92; // Angle gently towards the viewer
-  const targetY = isSelected ? 0.35 : 0;
+  const targetZ = Math.cos(theta) * radius - radius; // z <= 0 curves backwards away from camera
+  const targetRotY = -theta * 0.96; // Turn inwards to face towards the center camera!
+  const targetY = isSelected ? 0.55 : 0; // Prominently elevate the active movie
 
-  // Culling screens that are wrapped around out of panoramic view (|relIndex| > 3)
+  // Visible screens across the panoramic view (|relIndex| <= 3.5)
   const isVisible = Math.abs(relIndex) <= 3.5;
 
   // Organic continuous 3D floating and breathing animation
@@ -103,25 +103,26 @@ function CinemaScreenCurve({ movie, relIndex, isSelected, onSelect }: CinemaScre
             document.body.style.cursor = 'default';
           }}
         >
-          {/* Front Poster Surface (Facing the viewer!) */}
-          <mesh position={[0, 0, 0.02]} castShadow>
+          {/* Front Poster Surface (Facing the viewer with DoubleSide so never culled) */}
+          <mesh position={[0, 0, 0.04]} castShadow>
             <planeGeometry args={[3.2, 4.8, 16, 1]} />
             <meshStandardMaterial
               map={texture}
-              roughness={0.25}
-              metalness={0.08}
-              side={THREE.FrontSide}
+              roughness={0.22}
+              metalness={0.06}
+              side={THREE.DoubleSide}
             />
           </mesh>
 
-          {/* Brushed Champagne Platinum Metallic Bezel */}
-          <mesh position={[0, 0, 0]}>
-            <planeGeometry args={[3.36, 4.96]} />
+          {/* Brushed Champagne Gold / Obsidian Platinum Metallic Bezel Frame with Depth */}
+          <mesh position={[0, 0, 0]} castShadow>
+            <boxGeometry args={[3.36, 4.96, 0.06]} />
             <meshStandardMaterial
-              color={isSelected ? 0xd97706 : 0x334155}
+              color={isSelected ? 0xd97706 : 0x242d3d}
+              emissive={isSelected ? 0x92400e : 0x000000}
+              emissiveIntensity={isSelected ? 0.35 : 0}
               roughness={0.25}
-              metalness={0.85}
-              side={THREE.DoubleSide}
+              metalness={0.88}
             />
           </mesh>
 
@@ -130,8 +131,8 @@ function CinemaScreenCurve({ movie, relIndex, isSelected, onSelect }: CinemaScre
             <pointLight
               position={[0, -2.4, 0.8]}
               color={isSelected ? '#f59e0b' : '#38bdf8'}
-              intensity={isSelected ? 2.2 : 1.0}
-              distance={5.0}
+              intensity={isSelected ? 2.5 : 1.2}
+              distance={6.0}
             />
           )}
         </group>
@@ -173,9 +174,9 @@ function CurvedScreensRing() {
   // 3D Parallax Camera & Dynamic Atmospheric Animation
   useFrame(({ clock, mouse, camera }) => {
     // Dynamic camera parallax responding gently to cursor
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouse.x * 1.3, 0.04);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0.4 + mouse.y * 0.35, 0.04);
-    camera.lookAt(0, 0, -2);
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouse.x * 1.1, 0.04);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0.55 + mouse.y * 0.25, 0.04);
+    camera.lookAt(0, 0.25, -2);
 
     // 3D dynamic swirling motes
     if (particlesRef.current) {
@@ -306,7 +307,7 @@ export default function HeroPanorama3D() {
     <div className="relative w-full h-[500px] sm:h-[560px] md:h-[620px] overflow-hidden select-none">
       {/* 3D WebGL Canvas */}
       <Canvas
-        camera={{ position: [0, 0.4, 11.2], fov: 42 }}
+        camera={{ position: [0, 0.55, 11.4], fov: 40 }}
         gl={{ antialias: true, alpha: true }}
       >
         <CurvedScreensRing />

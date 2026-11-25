@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let heroInstance = null;
   let activeFilter = 'All';
-  let activeCity = 'Chennai';
+  let activeCity = 'Mumbai';
+  window.activeBookingCity = 'mumbai';
 
   // 1. Initialize 3D Panorama Hero
   const heroContainer = document.getElementById('hero-3d-canvas-container');
@@ -216,9 +217,13 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', () => {
         const city = btn.getAttribute('data-city');
         activeCity = city;
+        window.activeBookingCity = city;
         document.getElementById('current-city-name').textContent = city;
         document.getElementById('now-showing-city-label').textContent = city;
         cityModal.classList.add('hidden');
+        if (window.bookingApp && window.bookingApp.state && window.bookingApp.state.movie) {
+          window.bookingApp.startBooking(window.bookingApp.state.movie);
+        }
       });
     });
   }

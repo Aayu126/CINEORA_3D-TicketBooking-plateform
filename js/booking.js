@@ -55,8 +55,12 @@ class BookingCoordinator {
 
   startBooking(movie) {
     this.state.movie = movie;
-    this.state.theatre = window.CINE_DATA.theatres[0];
-    this.state.showtime = this.state.theatre.shows[3];
+    const currentCity = (window.activeBookingCity || 'mumbai').toLowerCase();
+    const cityTheatres = window.CINE_DATA.theatres.filter(t => t.city === currentCity || (t.location && t.location.toLowerCase().includes(currentCity)));
+    const activeTheatres = cityTheatres.length > 0 ? cityTheatres : window.CINE_DATA.theatres;
+
+    this.state.theatre = activeTheatres[0];
+    this.state.showtime = this.state.theatre.shows[0] || this.state.theatre.shows[3];
     this.state.selectedSeats = [];
     this.state.snacks = {};
     this.state.discount = 0;
@@ -90,7 +94,11 @@ class BookingCoordinator {
     container.innerHTML = '';
     container.style.background = '#0c0f22';
 
-    window.CINE_DATA.theatres.forEach(theatre => {
+    const currentCity = (window.activeBookingCity || 'mumbai').toLowerCase();
+    const cityTheatres = window.CINE_DATA.theatres.filter(t => t.city === currentCity || (t.location && t.location.toLowerCase().includes(currentCity)));
+    const activeTheatres = cityTheatres.length > 0 ? cityTheatres : window.CINE_DATA.theatres;
+
+    activeTheatres.forEach(theatre => {
       const card = document.createElement('div');
       card.className = 'theatre-item-card p-5 rounded-2xl mb-4 shadow-md';
       card.style.cssText = 'background: #151930 !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.14) !important; border-radius: 18px !important; margin-bottom: 16px; padding: 20px;';

@@ -25,11 +25,11 @@ export default function MovieCatalog() {
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
         <div>
-          <div className="flex items-center gap-2 text-amber-600 font-bold text-xs uppercase tracking-widest mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+          <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-widest mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span>NOW SHOWING & ADVANCE PREMIERE</span>
           </div>
-          <h2 className="font-display font-black text-3xl sm:text-4xl text-slate-950 tracking-tight">
+          <h2 className="font-display font-black text-3xl sm:text-4xl text-white tracking-tight">
             Explore Blockbusters
           </h2>
         </div>
@@ -42,8 +42,8 @@ export default function MovieCatalog() {
               onClick={() => setCategory(cat)}
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                 selectedCategory === cat
-                  ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
-                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-amber-400'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-lg shadow-amber-500/25'
+                  : 'bg-[#0e1329] text-slate-300 border border-white/10 hover:border-amber-400/50 hover:text-white'
               }`}
             >
               {cat}
@@ -63,14 +63,14 @@ export default function MovieCatalog() {
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               style={{ transformStyle: 'preserve-3d', perspective: 800 }}
               onClick={() => selectMovie(movie)}
-              className={`group relative rounded-2xl overflow-hidden bg-white border transition-all cursor-pointer flex flex-col ${
+              className={`group relative rounded-2xl overflow-hidden bg-[#0a0e22] border transition-all cursor-pointer flex flex-col ${
                 isSelected
-                  ? 'border-amber-500 shadow-xl shadow-amber-500/20 ring-2 ring-amber-400/40'
-                  : 'border-slate-200/90 hover:border-amber-400 shadow-md hover:shadow-2xl'
+                  ? 'border-amber-400 shadow-2xl shadow-amber-500/30 ring-2 ring-amber-400/50'
+                  : 'border-white/10 hover:border-amber-400/80 shadow-xl hover:shadow-2xl'
               }`}
             >
               {/* Poster Container */}
-              <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-100">
+              <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-950">
                 <Image
                   src={movie.poster}
                   alt={movie.title}
@@ -79,12 +79,12 @@ export default function MovieCatalog() {
                 />
 
                 {/* Top Cert Badge */}
-                <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-md border border-slate-700 text-[10px] font-black text-amber-400 uppercase">
+                <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-950/85 backdrop-blur-md border border-amber-500/30 text-[10px] font-black text-amber-400 uppercase">
                   {movie.cert}
                 </div>
 
                 {/* Rating Badge */}
-                <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-md border border-slate-700 text-[11px] font-black text-white">
+                <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-950/85 backdrop-blur-md border border-white/20 text-[11px] font-black text-white">
                   <Star className="w-3 h-3 fill-amber-400 stroke-none" />
                   <span>{movie.rating}</span>
                 </div>
@@ -106,17 +106,17 @@ export default function MovieCatalog() {
               {/* Movie Meta Content */}
               <div className="p-3.5 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-display font-black text-sm sm:text-base text-slate-950 truncate mb-1">
+                  <h3 className="font-display font-black text-sm sm:text-base text-white truncate mb-1">
                     {movie.title}
                   </h3>
-                  <p className="text-[11px] text-slate-500 truncate mb-2 font-medium">
+                  <p className="text-[11px] text-slate-400 truncate mb-2 font-medium">
                     {movie.genre} · {movie.primaryLang}
                   </p>
                   <div className="flex flex-wrap gap-1 mb-3">
                     {movie.formats.slice(0, 2).map((fmt) => (
                       <span
                         key={fmt}
-                        className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold border border-slate-200"
+                        className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-amber-300 font-semibold border border-white/10"
                       >
                         {fmt}
                       </span>
@@ -124,13 +124,13 @@ export default function MovieCatalog() {
                   </div>
                 </div>
 
-                <div className="flex gap-1.5 pt-2 border-t border-slate-100">
+                <div className="flex gap-1.5 pt-2 border-t border-white/10">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       openShowtimes(movie);
                     }}
-                    className="flex-1 py-2 rounded-xl bg-slate-900 hover:bg-amber-500 hover:text-slate-950 text-white font-extrabold text-[11px] uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                    className="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 shadow-md"
                   >
                     <Ticket className="w-3.5 h-3.5" />
                     <span>Book</span>
@@ -140,7 +140,7 @@ export default function MovieCatalog() {
                       e.stopPropagation();
                       openFullscreenTrailer(movie);
                     }}
-                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 border border-slate-200 transition-colors"
+                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white border border-white/10 transition-colors"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
                   </button>

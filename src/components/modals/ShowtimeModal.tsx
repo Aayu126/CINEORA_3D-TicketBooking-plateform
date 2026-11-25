@@ -8,9 +8,13 @@ import Image from 'next/image';
 
 export default function ShowtimeModal() {
   const selectedMovie = useCinemaStore((state) => state.selectedMovie);
+  const userCity = useCinemaStore((state) => state.userCity);
   const closeModal = useCinemaStore((state) => state.closeModal);
   const selectShowtime = useCinemaStore((state) => state.selectShowtime);
   const [imgError, setImgError] = useState(false);
+
+  const cityTheatres = THEATRES.filter((t) => t.city === userCity);
+  const displayTheatres = cityTheatres.length > 0 ? cityTheatres : THEATRES;
 
   // SVG Data URI Fallback ensures no broken image can EVER display
   const posterFallback = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="%231e1b4b"/><stop offset="100%" stop-color="%230f172a"/></linearGradient></defs><rect width="200" height="300" rx="16" fill="url(%23g)"/><text x="100" y="130" fill="%23f59e0b" font-family="sans-serif" font-weight="900" font-size="16" text-anchor="middle">${encodeURIComponent(selectedMovie?.title || 'CINEORA')}</text><text x="100" y="155" fill="%2338bdf8" font-family="sans-serif" font-weight="700" font-size="12" text-anchor="middle">IMAX LASER</text><text x="100" y="180" fill="%2394a3b8" font-family="sans-serif" font-size="10" text-anchor="middle">4K DOLBY ATMOS</text></svg>`;
@@ -76,12 +80,12 @@ export default function ShowtimeModal() {
           </button>
         </div>
 
-        {/* Theatres List - Deep Luxury Dark Background & High Contrast */}
+        {/* Theatres List - Filtered by User City */}
         <div 
           className="p-6 space-y-4 max-h-[60vh] overflow-y-auto"
           style={{ background: '#0c0f22' }}
         >
-          {THEATRES.map((theatre) => (
+          {displayTheatres.map((theatre) => (
             <div
               key={theatre.id}
               className="p-5 rounded-2xl transition-all shadow-md"
