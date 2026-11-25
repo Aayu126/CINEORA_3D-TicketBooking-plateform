@@ -1,0 +1,935 @@
+/* ==========================================================================
+   CINEORA - Luxe Alabaster Silk & Champagne Bronze 3D Ticket Platform
+   Light Luxury Aesthetic with High-Gloss Carrara Marble Exhibition
+   Design System Powered by ui-ux-pro-max & design-taste-frontend
+   ========================================================================== */
+
+:root {
+  --bg-primary: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --accent-gold: #b45309;
+  /* WCAG AAA compliant rich amber bronze */
+  --accent-gold-hover: #92400e;
+  --accent-gold-light: #fef3c7;
+  --accent-cyan: #0284c7;
+  --accent-mint: #059669;
+  --accent-purple: #7c3aed;
+  --accent-blue: #2563eb;
+
+  /* Text Contrast System (4.5:1 to 14.8:1 contrast ratios) */
+  --text-main: #0f172a;
+  /* Deep obsidian Slate-900 */
+  --text-body: #334155;
+  /* Slate-700 */
+  --text-muted: #475569;
+  /* Slate-600 */
+  --text-dim: #64748b;
+  /* Slate-500 */
+
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-highlight: rgba(180, 83, 9, 0.35);
+  --glass-bg: rgba(255, 255, 255, 0.88);
+  --glass-border: rgba(15, 23, 42, 0.08);
+
+  /* Modern Font Hierarchy */
+  --font-display: 'Outfit', 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-heading: 'Outfit', 'Montserrat', -apple-system, sans-serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+body {
+  background: linear-gradient(180deg, #fafbfc 0%, #f1f4f9 45%, #e9edf5 100%);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  min-height: 100vh;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+  color: var(--text-main);
+  font-weight: 800;
+}
+
+p,
+span,
+label,
+input,
+button {
+  font-family: var(--font-body);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+/* Glassmorphism */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-card {
+  background: #ffffff;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(180, 83, 9, 0.35);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.12), 0 6px 12px -2px rgba(15, 23, 42, 0.06);
+}
+
+/* ==========================================================================
+   Modal Dark High-Contrast System (WCAG AAA Compliant)
+   Guarantees 100% text readability, rich deep obsidian surface, and luminous typography
+   ========================================================================== */
+
+#showtime-modal > div,
+#snacks-modal > div,
+#checkout-modal > div,
+#ticket-modal > div,
+#my-tickets-drawer > div {
+  background: #0c0f22 !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95) !important;
+}
+
+#theatres-list-container,
+#snacks-grid-container {
+  background: #0c0f22 !important;
+}
+
+#showtime-modal .flex-col > div:first-child,
+#snacks-modal .flex-col > div:first-child,
+#checkout-modal .flex-col > div:first-child,
+#ticket-modal .flex-col > div:first-child {
+  background: #14182e !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+
+#showtime-modal h3,
+#showtime-modal h4,
+#snacks-modal h3,
+#snacks-modal h4,
+#checkout-modal h3,
+#checkout-modal h4,
+#ticket-modal h3,
+#ticket-modal h4 {
+  color: #ffffff !important;
+}
+
+#showtime-modal p,
+#snacks-modal p,
+#checkout-modal p,
+#ticket-modal p {
+  color: #cbd5e1 !important;
+}
+
+.theatre-item-card {
+  background: #151930 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
+  border-radius: 18px !important;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.theatre-item-card:hover {
+  border-color: rgba(245, 158, 11, 0.6) !important;
+  background: #1c213f !important;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.7) !important;
+}
+
+.theatre-item-card h4 {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.theatre-item-card p {
+  color: #cbd5e1 !important;
+}
+
+.theatre-item-card span {
+  color: inherit;
+}
+
+.theatre-item-card .showtime-facility-tag {
+  background: #212643 !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.showtime-pill {
+  background: #21253e !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  border-radius: 14px !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.showtime-pill:hover {
+  background: #2f3558 !important;
+  border-color: #f59e0b !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+.showtime-pill.active,
+.showtime-pill[data-selected="true"] {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  border-color: #f59e0b !important;
+  color: #020617 !important;
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4) !important;
+}
+
+.showtime-pill.active .font-extrabold,
+.showtime-pill[data-selected="true"] .font-extrabold,
+.showtime-pill.active div:first-child,
+.showtime-pill[data-selected="true"] div:first-child {
+  color: #020617 !important;
+}
+
+.showtime-pill.active .text-amber-300,
+.showtime-pill[data-selected="true"] .text-amber-300,
+.showtime-pill.active div:last-child,
+.showtime-pill[data-selected="true"] div:last-child {
+  color: #1e1b00 !important;
+  font-weight: 900 !important;
+}
+
+/* Navbar */
+.navbar-sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03);
+  transition: background 0.3s ease;
+}
+
+/* 3D Panorama Hero */
+.hero-3d-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 85vh;
+  min-height: 580px;
+  max-height: 860px;
+  background: radial-gradient(circle at 50% 20%, #ffffff 0%, #f1f5f9 55%, #e2e8f0 100%);
+  overflow: hidden;
+  user-select: none;
+}
+
+#hero-3d-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+#hero-3d-canvas:active {
+  cursor: grabbing;
+}
+
+.hero-celestial-overlay,
+.hero-spotlight-cone {
+  display: none !important;
+}
+
+.hero-brand-emblem {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.hero-brand-emblem h1 {
+  font-family: var(--font-display);
+  font-size: 3.4rem;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  font-weight: 900;
+  background: linear-gradient(180deg, #0f172a 20%, #334155 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(15, 23, 42, 0.08));
+}
+
+.hero-brand-emblem p {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  letter-spacing: 3.5px;
+  color: var(--text-dim);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hero-floating-card {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  padding: 18px 28px;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  width: max-content;
+  max-width: 90vw;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Curved Ribbon Marquee */
+.curved-marquee-wrapper {
+  position: relative;
+  overflow: hidden;
+  padding: 16px 0;
+  background: #ffffff;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  transform: rotate(-0.5deg) scale(1.02);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+}
+
+.curved-marquee-track {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+  animation: marqueeScroll 35s linear infinite;
+}
+
+.curved-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-item {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #1e293b;
+  padding: 0 16px;
+}
+
+.marquee-item .highlight {
+  color: var(--accent-gold);
+  font-weight: 900;
+}
+
+.marquee-item .sparkle {
+  color: #06b6d4;
+  margin: 0 8px;
+}
+
+/* 3D Cinema Hall Modal Overlay */
+.cinema-hall-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #030308;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cinema-hall-header {
+  height: 64px;
+  background: rgba(10, 10, 18, 0.96);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 20;
+  gap: 16px;
+}
+
+/* 3D Theater Structure Switcher in Header */
+.hall-structure-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 16, 26, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 3px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.hall-structure-btn {
+  padding: 6px 13px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.hall-structure-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hall-structure-btn.active {
+  color: #000000;
+  background: #f59e0b;
+  border-color: #f59e0b;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+}
+
+.hall-structure-btn.active[data-structure="multiplex-dark"] {
+  color: #000000;
+  background: #06b6d4;
+  border-color: #06b6d4;
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.4);
+}
+
+.hall-structure-btn.active[data-structure="vip-lounge"] {
+  color: #ffffff;
+  background: #9333ea;
+  border-color: #a855f7;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.4);
+}
+
+.cinema-hall-body {
+  flex: 1;
+  display: flex;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.cinema-canvas-area {
+  flex: 1;
+  position: relative;
+  background: #020206;
+  overflow: hidden;
+}
+
+#cinema-3d-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  z-index: 1;
+  cursor: grab;
+}
+
+#cinema-3d-canvas:active {
+  cursor: grabbing;
+}
+
+/* Camera Preset Controls Floating on Canvas */
+.cinema-camera-presets {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 15;
+  display: flex;
+  gap: 6px;
+  background: rgba(12, 12, 22, 0.88);
+  backdrop-filter: blur(18px);
+  padding: 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  max-width: calc(100vw - 40px);
+  overflow-x: auto;
+}
+
+.preset-btn {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.80rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.preset-btn.active {
+  color: #040407;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.35);
+}
+
+.preset-btn[data-preset="sleeper"].active {
+  color: #ffffff;
+  background: #ec4899;
+  box-shadow: 0 0 16px rgba(236, 72, 153, 0.55);
+}
+
+/* Floating Zoom In / Zoom Out and 360 Rotation Control Dock */
+.cinema-zoom-dock {
+  position: absolute;
+  top: 80px;
+  right: 20px;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(12, 12, 22, 0.88);
+  backdrop-filter: blur(18px);
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+.dock-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dock-btn:hover {
+  background: var(--accent-gold);
+  color: #000000;
+  transform: scale(1.08);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+}
+
+.dock-btn:active {
+  transform: scale(0.95);
+}
+
+.dock-btn.active-state {
+  background: #06b6d4;
+  color: #000000;
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+}
+
+/* 360 Compass Tag */
+.cinema-360-indicator {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  color: #06b6d4;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Balcony Quick Setting Floating Pill */
+.balcony-settings-bar {
+  position: absolute;
+  bottom: 60px;
+  left: 20px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(12, 12, 22, 0.9);
+  backdrop-filter: blur(18px);
+  padding: 6px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  font-size: 0.78rem;
+}
+
+/* Bottom Controls */
+.cinema-canvas-toggles {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 15;
+  display: flex;
+  gap: 8px;
+}
+
+.cinema-bottom-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 24px;
+  z-index: 15;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+/* Sidebar */
+.cinema-sidebar {
+  width: 420px;
+  background: #080812;
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.cinema-sidebar-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.cinema-sidebar-footer {
+  padding: 18px 24px;
+  background: #0d0d18;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.seat-tier-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+}
+
+.seat-tier-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Digital Ticket */
+.digital-ticket-card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: linear-gradient(145deg, #161626 0%, #0c0c16 100%);
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(245, 158, 11, 0.18);
+}
+
+.ticket-notch-left,
+.ticket-notch-right {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background-color: var(--bg-primary);
+  border-radius: 50%;
+  top: 60%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.ticket-notch-left {
+  left: -12px;
+}
+
+.ticket-notch-right {
+  right: -12px;
+}
+
+.ticket-perforated-line {
+  position: absolute;
+  top: 60%;
+  left: 20px;
+  right: 20px;
+  border-top: 2px dashed rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+}
+
+/* Gold CTA Button */
+.btn-gold {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #000000;
+  font-weight: 800;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.32);
+}
+
+.btn-gold:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(245, 158, 11, 0.48);
+}
+
+.btn-gold:active {
+  transform: translateY(1px);
+}
+
+/* Cinema Screen Trailer Controller Dock */
+.cinema-trailer-controller-dock {
+  position: absolute;
+  top: 75px;
+  left: 20px;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(10, 12, 24, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.12);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cinema-trailer-controller-dock:hover {
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.trailer-dock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.trailer-dock-btn:hover {
+  transform: translateY(-1px);
+  border-color: currentColor;
+}
+
+.trailer-dock-btn:active {
+  transform: translateY(1px);
+}
+
+/* Screen Click Hint Pill */
+.cinema-screen-click-hint {
+  position: absolute;
+  bottom: 60px;
+  right: 20px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(10, 12, 24, 0.90);
+  backdrop-filter: blur(16px);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fef3c7;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.cinema-screen-click-hint:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: rgba(245, 158, 11, 0.8);
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .cinema-hall-body {
+    flex-direction: column;
+    height: calc(100vh - 65px);
+    overflow-y: auto;
+  }
+
+  .cinema-sidebar {
+    width: 100%;
+    flex: 1;
+    border-left: none;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .cinema-canvas-area {
+    height: 52vh;
+    min-height: 340px;
+    flex: none;
+  }
+
+  .cinema-camera-presets {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    max-width: calc(100% - 20px);
+    overflow-x: auto;
+    padding: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cinema-trailer-controller-dock {
+    top: 55px;
+    left: 10px;
+    gap: 6px;
+    padding: 4px 10px;
+  }
+
+  .cinema-360-indicator {
+    display: none;
+  }
+
+  .cinema-screen-click-hint {
+    bottom: 12px;
+    right: 10px;
+    font-size: 0.70rem;
+    padding: 4px 10px;
+  }
+
+  .cinema-zoom-dock {
+    bottom: 50px;
+    left: 10px;
+    top: auto;
+  }
+
+  .balcony-settings-bar {
+    bottom: 12px;
+    left: 10px;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-3d-wrapper {
+    height: 72vh;
+    min-height: 480px;
+  }
+
+  .hero-brand-emblem {
+    top: 30px;
+  }
+
+  .hero-brand-emblem h1 {
+    font-size: 2.2rem;
+    letter-spacing: 3px;
+  }
+
+  .hero-brand-emblem p {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+  }
+
+  .hero-floating-card {
+    flex-direction: column;
+    width: calc(100vw - 24px);
+    padding: 12px 16px;
+    gap: 12px;
+    bottom: 16px;
+  }
+
+  .cinema-trailer-controller-dock {
+    top: 52px;
+    left: 8px;
+    right: 8px;
+    justify-content: space-between;
+  }
+
+  .cinema-canvas-area {
+    height: 46vh;
+    min-height: 300px;
+  }
+}

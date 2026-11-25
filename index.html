@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CINEORA — Next-Gen 3D Movie Ticket Booking Experience</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@700;800;900&family=Montserrat:wght@700;800;900&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"DM Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            display: ['"Outfit"', '"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['"Outfit"', '"Montserrat"', 'sans-serif']
+          },
+          colors: {
+            cinema: {
+              gold: '#d97706',
+              amber: '#b45309', dark: '#030308',
+              surface: '#0a0a14',
+              card: '#121220',
+              cyan: '#0284c7',
+              mint: '#059669',
+              purple: '#7c3aed'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Three.js CDN, GSAP & GLTF Loader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="js/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="bg-[#f8fafc] text-slate-900 antialiased selection:bg-amber-500 selection:text-white">
+
+  <!-- ================= TOP NAVBAR ================= -->
+  <header class="navbar-sticky">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+
+      <!-- Brand Logo: CINEORA -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div
+          class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-amber-500/25 group-hover:scale-105 transition-transform">
+          🎟️
+        </div>
+        <div>
+          <span
+            class="text-2xl font-black tracking-wider text-slate-950 uppercase font-['Montserrat',sans-serif]">CINE<span
+              class="text-amber-600">ORA</span></span>
+          <span
+            class="hidden sm:inline-block ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 border border-amber-500/20">3D</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
+        <a href="#now-showing-section" class="text-amber-600 font-bold transition-colors">Movies</a>
+        <a href="#now-showing-section" class="hover:text-slate-950 transition-colors">Events</a>
+        <a href="#now-showing-section" class="hover:text-slate-950 transition-colors">Plays</a>
+        <a href="#now-showing-section" class="hover:text-slate-950 transition-colors">Sports</a>
+      </nav>
+
+      <!-- Search Bar -->
+      <div class="flex-1 max-w-xs lg:max-w-md hidden sm:block relative">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          🔍
+        </div>
+        <input type="text" id="navbar-search-input" placeholder="Search movies, theatres..."
+          class="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-100/90 border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-sm" />
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-3">
+
+        <!-- My Tickets Button -->
+        <button id="my-tickets-btn"
+          class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-2 transition-all shadow-sm">
+          <span>🎫 My tickets</span>
+          <span id="my-tickets-count-badge"
+            class="hidden px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-extrabold">0</span>
+        </button>
+
+        <!-- City Selector -->
+        <button id="city-selector-btn"
+          class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 flex items-center gap-1.5 transition-all shadow-sm">
+          <span>📍</span>
+          <span id="current-city-name">Chennai</span>
+          <span class="text-[10px] opacity-60">⌄</span>
+        </button>
+
+        <!-- Sign In Button -->
+        <button
+          class="px-5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-extrabold uppercase tracking-wider transition-all shadow-md shadow-slate-900/15 active:scale-95">
+          Sign in
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= 3D CURVED PANORAMA HERO ================= -->
+  <section class="hero-3d-wrapper pt-20" id="hero-section">
+    <!-- Center Brand Emblem: CINEORA -->
+    <div class="hero-brand-emblem">
+      <h1>CINEORA</h1>
+      <p>DRAG TO EXPLORE · TAP A SCREEN TO BOOK</p>
+    </div>
+
+    <!-- Real-time Three.js 3D Canvas -->
+    <div id="hero-3d-canvas-container" class="w-full h-full relative"></div>
+
+    <!-- Floating Left / Right Movie Change Navigation Arrows -->
+    <button onclick="window.heroInstance && window.heroInstance.prev()"
+      class="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-slate-900/85 hover:bg-amber-500 hover:text-slate-950 text-white border border-slate-700/80 hover:border-amber-400 shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 backdrop-blur-md cursor-pointer text-2xl font-black"
+      title="Previous Movie (Left Arrow)" aria-label="Previous Movie">
+      ‹
+    </button>
+    <button onclick="window.heroInstance && window.heroInstance.next()"
+      class="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-slate-900/85 hover:bg-amber-500 hover:text-slate-950 text-white border border-slate-700/80 hover:border-amber-400 shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 backdrop-blur-md cursor-pointer text-2xl font-black"
+      title="Next Movie (Right Arrow)" aria-label="Next Movie">
+      ›
+    </button>
+
+    <!-- Floating Movie Information & Booking Card -->
+    <div class="hero-floating-card">
+      <div class="flex items-center gap-4">
+        <button id="hero-prev-btn"
+          class="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold transition-all border border-slate-200 shadow-sm shrink-0"
+          title="Previous Movie">
+          ‹
+        </button>
+
+        <!-- Mini Poster Thumbnail on Front Hero Card -->
+        <img id="hero-card-poster" src="images/posters/varanasi.jpg" alt="Poster"
+          class="w-14 h-20 rounded-xl object-cover shadow-md border border-slate-200 shrink-0 hidden sm:block" />
+
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span id="hero-card-tag"
+              class="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+              ● PRE-BOOKING OPEN
+            </span>
+            <span id="hero-card-counter" class="text-xs font-mono font-bold text-slate-500">04 / 24</span>
+          </div>
+          <h2 id="hero-card-title"
+            class="text-2xl sm:text-3xl font-black text-slate-950 tracking-wide uppercase font-['Montserrat',sans-serif]">
+            VARANASI
+          </h2>
+          <p id="hero-card-meta" class="text-xs sm:text-sm text-slate-600 font-medium mt-0.5">
+            UA | Telugu · Adventure, Mythology · 3h 05m · ★ 9.6
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="hero-trailer-btn"
+          class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-800 flex items-center gap-1.5 transition-all shadow-sm">
+          <span>▶</span>
+          <span>Trailer</span>
+        </button>
+
+        <button id="hero-book-btn"
+          class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-extrabold uppercase tracking-wider transition-all shadow-lg shadow-amber-500/25 active:scale-95">
+          Pre-book
+        </button>
+
+        <button id="hero-next-btn"
+          class="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold transition-all border border-slate-200 shadow-sm">
+          ›
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CURVED MARQUEE BANNER RIBBON ================= -->
+  <div class="curved-marquee-wrapper my-6">
+    <div class="curved-marquee-track">
+      <div class="marquee-item">
+        • Atmos. <span class="sparkle">✦</span> <span class="highlight">Your seat is waiting at CINEORA.</span> <span
+          class="sparkle">✦</span> Lights down. Phones off. <span class="sparkle">✦</span> Every format. <span
+          class="highlight">IMAX • 4DX • Atmos.</span> <span class="sparkle">✦</span> Your seat is waiting. <span
+          class="sparkle">✦</span> Lights down. Phones off. <span class="sparkle">✦</span> Every format. IMAX • 4DX •
+        Atmos.
+      </div>
+      <div class="marquee-item">
+        • Atmos. <span class="sparkle">✦</span> <span class="highlight">Your seat is waiting at CINEORA.</span> <span
+          class="sparkle">✦</span> Lights down. Phones off. <span class="sparkle">✦</span> Every format. <span
+          class="highlight">IMAX • 4DX • Atmos.</span> <span class="sparkle">✦</span> Your seat is waiting. <span
+          class="sparkle">✦</span> Lights down. Phones off. <span class="sparkle">✦</span> Every format. IMAX • 4DX •
+        Atmos.
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center text-[10px] tracking-widest text-slate-500 uppercase font-semibold mb-8">
+    DRAG TO SPIN · HOVER TO PAUSE
+  </div>
+
+  <!-- ================= NOW SHOWING SECTION ================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="now-showing-section">
+
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight flex items-center gap-2">
+          <span>Now showing in</span>
+          <span class="text-amber-600" id="now-showing-city-label">Chennai</span>
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">Book tickets for movies running in theatres near you</p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a href="#now-showing-section"
+          class="text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1">
+          <span>See all (46)</span>
+          <span>›</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Language Filter Pills -->
+    <div class="flex items-center gap-2.5 overflow-x-auto pb-4 scrollbar-none">
+      <button
+        class="lang-filter-pill px-4 py-1.5 rounded-full text-xs font-bold transition-all border bg-slate-900 text-white border-slate-900 shadow-md shadow-slate-900/10"
+        data-lang="All">
+        All
+      </button>
+      <button
+        class="lang-filter-pill px-4 py-1.5 rounded-full text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 shadow-sm"
+        data-lang="Tamil">
+        Tamil
+      </button>
+      <button
+        class="lang-filter-pill px-4 py-1.5 rounded-full text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 shadow-sm"
+        data-lang="Telugu">
+        Telugu
+      </button>
+      <button
+        class="lang-filter-pill px-4 py-1.5 rounded-full text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 shadow-sm"
+        data-lang="Kannada">
+        Kannada
+      </button>
+      <button
+        class="lang-filter-pill px-4 py-1.5 rounded-full text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 shadow-sm"
+        data-lang="Malayalam">
+        Malayalam
+      </button>
+      <button
+        class="lang-filter-pill px-4 py-1.5 rounded-full text-xs font-bold transition-all border bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 shadow-sm"
+        data-lang="Hindi">
+        Hindi
+      </button>
+    </div>
+
+    <!-- Movie Posters Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 mt-4" id="now-showing-grid">
+      <!-- Populated dynamically via js/app.js -->
+    </div>
+  </main>
+
+  <!-- ================= 3D CINEMA HALL SEAT PICKER OVERLAY ================= -->
+  <div id="cinema-hall-overlay" class="cinema-hall-overlay hidden">
+
+    <!-- Header Bar -->
+    <header class="cinema-hall-header">
+      <div class="flex items-center gap-4">
+        <button
+          class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-lg transition-colors"
+          onclick="window.bookingApp.closeModal('cinema-hall-overlay')">
+          ←
+        </button>
+        <div>
+          <h2 id="hall-movie-title"
+            class="text-lg font-black text-white tracking-wide uppercase font-['Montserrat',sans-serif]">JAILER 2</h2>
+          <p id="hall-meta-text" class="text-xs text-slate-400">PVR INOX Palazzo · Today, 29 Oct · 6:30 PM · 2D · Tamil
+          </p>
+        </div>
+      </div>
+
+      <!-- 3D Architecture Structure Switcher (Grand Wood Balcony, IMAX Multiplex, VIP Lounge) -->
+      <div class="hall-structure-switcher" id="hall-structure-selector">
+        <button class="hall-structure-btn active" data-structure="grand-wood"
+          title="Grand Royal Wood Auditorium with Balcony & Acoustic Oak Slats (Fab Model)">
+          <span>🏛️</span>
+          <span>Grand Wood</span>
+          <span class="text-[10px] text-amber-300 font-semibold hidden sm:inline">(Balcony)</span>
+        </button>
+        <button class="hall-structure-btn text-slate-400" data-structure="multiplex-dark"
+          title="IMAX Laser Multiplex with Grooved Acoustic Fabric & Surround Sound">
+          <span>🎬</span>
+          <span>IMAX Multiplex</span>
+          <span class="text-[10px] text-cyan-300 font-semibold hidden sm:inline">(Laser)</span>
+        </button>
+        <button class="hall-structure-btn text-slate-400" data-structure="vip-lounge"
+          title="Luxe VIP Boutique with Velvet Panels & Private Boxes">
+          <span>👑</span>
+          <span>VIP Lounge</span>
+          <span class="text-[10px] text-purple-300 font-semibold hidden sm:inline">(Suites)</span>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span
+          class="text-xs font-mono font-bold text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded border border-amber-400/20">CINEORA
+          3D</span>
+        <span id="hall-cert-badge"
+          class="px-2.5 py-1 rounded bg-black/60 border border-white/10 text-xs font-bold text-slate-300">UA 16+</span>
+        <button class="text-xs font-bold text-slate-400 hover:text-white px-2 py-1"
+          onclick="window.bookingApp.closeModal('cinema-hall-overlay')">✕ Close</button>
+      </div>
+    </header>
+
+    <!-- Main Body Area -->
+    <div class="cinema-hall-body">
+
+      <!-- Left: Real-time 3D Viewport with Architectural Balcony & 360 Rotation -->
+      <div class="cinema-canvas-area" id="cinema-canvas-container">
+
+        <!-- Floating Camera Presets (Now including Balcony & Sleeper Beds Viewpoints) -->
+        <div class="cinema-camera-presets">
+          <button class="preset-btn hall-preset-btn active" data-preset="overview">Overview</button>
+          <button class="preset-btn hall-preset-btn text-pink-400 font-extrabold" data-preset="sleeper">🛏️ Sleeper
+            Beds</button>
+          <button class="preset-btn hall-preset-btn text-purple-300 font-extrabold" data-preset="balcony">👑 Balcony
+            View</button>
+          <button class="preset-btn hall-preset-btn text-purple-300" data-preset="balcony_left">Balcony Left
+            Box</button>
+          <button class="preset-btn hall-preset-btn text-purple-300" data-preset="balcony_right">Balcony Right
+            Box</button>
+          <button class="preset-btn hall-preset-btn" data-preset="stage">From stage</button>
+          <button class="preset-btn hall-preset-btn" data-preset="birdseye">Bird's eye</button>
+          <button class="preset-btn hall-preset-btn text-amber-400" data-preset="tour">▶ Tour</button>
+        </div>
+
+        <!-- 360 Degree Indicator Badge -->
+        <div class="cinema-360-indicator">
+          <span>🔄 360° Free Orbit</span>
+        </div>
+
+        <!-- Interactive Cinema Screen Trailer Dock (Play & Stop controls) -->
+        <div class="cinema-trailer-controller-dock">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+            <span id="screen-trailer-status"
+              class="text-[10px] font-black px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">SCREEN
+              STANDBY</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button id="screen-trailer-play-btn" class="trailer-dock-btn text-emerald-400 hover:bg-emerald-500/20"
+              title="Play Trailer on Theater Screen">
+              ▶ <span>Play Trailer</span>
+            </button>
+            <button id="screen-trailer-pause-btn" class="trailer-dock-btn text-amber-400 hover:bg-amber-500/20 hidden"
+              title="Pause Trailer">
+              ⏸ <span>Pause</span>
+            </button>
+            <button id="screen-trailer-stop-btn" class="trailer-dock-btn text-rose-400 hover:bg-rose-500/20"
+              title="Stop & Reset Screen">
+              ⏹ <span>Stop</span>
+            </button>
+            <button id="screen-trailer-audio-btn" class="trailer-dock-btn text-slate-300 hover:bg-white/10"
+              title="Mute / Unmute Sound">
+              🔇
+            </button>
+          </div>
+        </div>
+
+        <!-- Cinema Screen Click Hint -->
+        <div id="cinema-screen-click-hint" class="cinema-screen-click-hint"
+          onclick="window.bookingApp && window.bookingApp.cinemaHallInstance && window.bookingApp.cinemaHallInstance.toggleTheaterTrailer()">
+          <span>🎬 Click Big Screen to Play / Pause Trailer</span>
+        </div>
+
+        <!-- Zoom In / Zoom Out and 360 Rotation Floating Dock -->
+        <div class="cinema-zoom-dock">
+          <button id="zoom-in-btn" class="dock-btn" title="Zoom In (+)">
+            +
+          </button>
+          <button id="zoom-out-btn" class="dock-btn" title="Zoom Out (-)">
+            −
+          </button>
+          <button id="reset-view-btn" class="dock-btn text-sm" title="Reset Camera View (⟲)">
+            ⟲
+          </button>
+          <button id="auto-orbit-360-btn" class="dock-btn text-[11px] font-black" title="Toggle 360° Continuous Orbit">
+            360°
+          </button>
+        </div>
+
+        <!-- Balcony Quick Settings Floating Pill -->
+        <div class="balcony-settings-bar">
+          <span class="font-bold text-purple-300 flex items-center gap-1.5">
+            <span>👑</span>
+            <span>Balcony Tier Setting:</span>
+          </span>
+          <button id="balcony-neon-btn"
+            class="px-2.5 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-bold border border-purple-500/40 transition-colors">
+            ✨ Balcony Aura
+          </button>
+        </div>
+
+        <!-- Bottom Controls -->
+        <div class="cinema-canvas-toggles">
+          <button id="house-lights-toggle-btn"
+            class="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-colors border border-white/10 flex items-center gap-1.5">
+            💡 <span>House lights</span>
+          </button>
+          <button id="view-selected-seat-btn"
+            class="hidden px-4 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-colors shadow-lg shadow-emerald-500/25">
+            👁️ View from seat
+          </button>
+        </div>
+
+        <div class="cinema-bottom-hint">
+          360° Orbit: Drag anywhere to rotate all around hall · Scroll or click + / − to zoom · Click any seat to
+          inspect
+        </div>
+      </div>
+
+      <!-- Right: Seat Classes & Booking Sidebar -->
+      <aside class="cinema-sidebar">
+
+        <div class="cinema-sidebar-content">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">SEAT CLASSES</h3>
+          </div>
+
+          <!-- Seat Tiers List -->
+          <div id="seat-tiers-sidebar-list" class="mb-5">
+            <!-- Populated dynamically via js/booking.js -->
+          </div>
+
+          <!-- Legend -->
+          <div
+            class="flex items-center justify-between py-3 border-y border-white/5 text-[11px] text-slate-400 mb-5 flex-wrap gap-2">
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-[#22222e]"></span>
+              <span>Booked</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-[#00f5d4] shadow-sm shadow-[#00f5d4]"></span>
+              <span>Your pick</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-[#ec4899] shadow-sm shadow-[#ec4899]"></span>
+              <span>Sleeper Bed</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+              <span>Recliner</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+              <span>Balcony</span>
+            </div>
+          </div>
+
+          <!-- QUICK PICK -->
+          <div class="mb-5">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2.5">QUICK PICK</h3>
+            <div class="flex items-center gap-3">
+              <!-- Stepper -->
+              <div class="flex items-center bg-white/5 rounded-xl border border-white/10 p-1">
+                <button id="qty-minus-btn"
+                  class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold flex items-center justify-center transition-colors">-</button>
+                <span id="quick-pick-qty-input" class="w-9 text-center font-black text-white text-sm">2</span>
+                <button id="qty-plus-btn"
+                  class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white font-bold flex items-center justify-center transition-colors">+</button>
+              </div>
+
+              <!-- Best Seats Button -->
+              <button id="best-seats-quick-btn"
+                class="flex-1 py-2.5 px-4 rounded-xl bg-white text-black font-extrabold text-xs tracking-wide hover:bg-slate-200 transition-all shadow-md active:scale-95">
+                ✦ Best 2 seats
+              </button>
+            </div>
+          </div>
+
+          <!-- YOUR SEATS -->
+          <div>
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">YOUR SEATS</h3>
+            <div id="sidebar-selected-seats-tags"
+              class="flex flex-wrap gap-2 min-h-[48px] p-2.5 bg-white/5 rounded-xl border border-white/5">
+            </div>
+            <p id="cinema-hover-hint" class="text-[11px] text-slate-400 mt-2">Drag to rotate 360° · Scroll or use + / -
+              to zoom</p>
+          </div>
+
+        </div>
+
+        <!-- Sidebar Footer Action -->
+        <div class="cinema-sidebar-footer">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <span id="sidebar-seats-count" class="text-xs font-bold text-slate-300">0 tickets</span>
+              <span class="text-[11px] text-slate-500 block">+ fees & GST</span>
+            </div>
+            <div id="sidebar-total-amount" class="text-2xl font-black text-white">₹0</div>
+          </div>
+
+          <button id="sidebar-continue-btn"
+            class="w-full py-3.5 rounded-xl btn-gold text-sm uppercase tracking-wider font-black flex items-center justify-center gap-2"
+            onclick="window.bookingApp.proceedToSnacks()">
+            <span>CONTINUE · ADD SNACKS</span>
+            <span>→</span>
+          </button>
+        </div>
+
+      </aside>
+    </div>
+  </div>
+
+  <!-- ================= SHOWTIME SELECTION MODAL ================= -->
+  <div id="showtime-modal"
+    class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
+      style="background: #0c0f22 !important; border: 1px solid rgba(255, 255, 255, 0.16) !important; color: #ffffff !important;">
+      <div class="p-6 border-b flex items-start justify-between"
+        style="background: #14182e !important; border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;">
+        <div class="flex gap-4 items-center">
+          <img id="showtime-movie-poster" src="images/posters/jailer-2.jpg"
+            onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'300\' viewBox=\'0 0 200 300\'><defs><linearGradient id=\'g\' x1=\'0\' y1=\'0\' x2=\'1\' y2=\'1\'><stop offset=\'0%25\' stop-color=\'%231e1b4b\'/><stop offset=\'100%25\' stop-color=\'%230f172a\'/></linearGradient></defs><rect width=\'200\' height=\'300\' rx=\'16\' fill=\'url(%23g)\'/><text x=\'100\' y=\'130\' fill=\'%23f59e0b\' font-family=\'sans-serif\' font-weight=\'900\' font-size=\'18\' text-anchor=\'middle\'>JAILER 2</text><text x=\'100\' y=\'155\' fill=\'%2338bdf8\' font-family=\'sans-serif\' font-weight=\'700\' font-size=\'12\' text-anchor=\'middle\'>CINEORA IMAX</text><text x=\'100\' y=\'180\' fill=\'%2394a3b8\' font-family=\'sans-serif\' font-size=\'10\' text-anchor=\'middle\'>HD 4K LASER</text></svg>';"
+            class="w-16 h-24 object-cover rounded-xl shadow-lg border border-slate-700 shrink-0"
+            style="background: #1c2038;" />
+          <div>
+            <h3 id="showtime-movie-title" class="text-2xl sm:text-3xl font-black text-white tracking-tight font-display"
+              style="color: #ffffff !important;">JAILER 2</h3>
+            <p id="showtime-movie-meta" class="text-xs text-slate-300 mt-1 font-medium"
+              style="color: #cbd5e1 !important;">UA 16+ · Action · Thriller · 2h 45m · Tamil, Telugu, Hindi, Kannada</p>
+            <div class="flex items-center gap-2 mt-2">
+              <span
+                class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">CINEORA
+                Laser Experience</span>
+              <span class="text-[11px] text-amber-400 font-extrabold flex items-center gap-1">⚡ Fast Filling</span>
+            </div>
+          </div>
+        </div>
+        <button
+          class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 flex items-center justify-center text-sm font-bold transition-colors shrink-0"
+          onclick="window.bookingApp.closeModal('showtime-modal')">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1" id="theatres-list-container" style="background: #0c0f22 !important;">
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SNACKS & BEVERAGES MODAL ================= -->
+  <div id="snacks-modal"
+    class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div
+      class="w-full max-w-3xl rounded-3xl overflow-hidden border border-slate-700/80 shadow-2xl bg-[#0c0e1c] max-h-[90vh] flex flex-col">
+      <div class="p-6 bg-[#13162a] border-b border-slate-700/80 flex items-center justify-between">
+        <div>
+          <h3 class="text-2xl font-black text-white tracking-tight font-display">Grab a Bite</h3>
+          <p class="text-xs text-slate-300 mt-0.5 font-medium">Pre-order cinema gourmet snacks & get priority in-seat
+            delivery</p>
+        </div>
+        <button
+          class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 flex items-center justify-center text-sm font-bold transition-colors"
+          onclick="window.bookingApp.closeModal('snacks-modal')">✕</button>
+      </div>
+
+      <div class="px-6 pt-4 flex gap-2 border-b border-slate-800 bg-[#0c0e1c] overflow-x-auto pb-3">
+        <button
+          class="px-4 py-1.5 rounded-full text-xs font-black bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
+          onclick="window.bookingApp.renderSnacksList('All')">All Items</button>
+        <button
+          class="px-4 py-1.5 rounded-full text-xs font-bold bg-[#171a2e] text-slate-200 border border-slate-700/80 hover:bg-[#20243c] hover:text-white transition-colors"
+          onclick="window.bookingApp.renderSnacksList('Popcorn')">Popcorn</button>
+        <button
+          class="px-4 py-1.5 rounded-full text-xs font-bold bg-[#171a2e] text-slate-200 border border-slate-700/80 hover:bg-[#20243c] hover:text-white transition-colors"
+          onclick="window.bookingApp.renderSnacksList('Snacks')">Nachos & Bites</button>
+        <button
+          class="px-4 py-1.5 rounded-full text-xs font-bold bg-[#171a2e] text-slate-200 border border-slate-700/80 hover:bg-[#20243c] hover:text-white transition-colors"
+          onclick="window.bookingApp.renderSnacksList('Beverages')">Drinks</button>
+        <button
+          class="px-4 py-1.5 rounded-full text-xs font-bold bg-[#171a2e] text-slate-200 border border-slate-700/80 hover:bg-[#20243c] hover:text-white transition-colors"
+          onclick="window.bookingApp.renderSnacksList('Combos')">Combos</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 bg-[#0c0e1c]"
+        id="snacks-grid-container">
+      </div>
+
+      <div class="p-6 bg-[#13162a] border-t border-slate-700/80 flex items-center justify-between">
+        <div>
+          <span id="snacks-items-count" class="text-xs font-bold text-slate-300">0 items</span>
+          <div id="snacks-total-price" class="text-2xl font-black text-white font-display">₹0</div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button
+            class="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors border border-slate-700"
+            onclick="window.bookingApp.proceedToCheckout()">
+            Skip Snacks
+          </button>
+          <button class="px-7 py-3 rounded-xl btn-gold text-xs font-black uppercase tracking-wider transition-all"
+            onclick="window.bookingApp.proceedToCheckout()">
+            Proceed to Pay →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CHECKOUT & ORDER REVIEW MODAL ================= -->
+  <div id="checkout-modal"
+    class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div
+      class="w-full max-w-xl rounded-3xl overflow-hidden border border-slate-700/80 shadow-2xl bg-[#0c0e1c] max-h-[92vh] flex flex-col">
+      <div class="p-6 bg-[#13162a] border-b border-slate-700/80 flex items-center justify-between">
+        <div>
+          <h3 class="text-xl font-black text-white font-display">Review & Pay</h3>
+          <p class="text-xs text-slate-300 font-medium">Complete payment to confirm your CINEORA reservation</p>
+        </div>
+        <button
+          class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 flex items-center justify-center font-bold text-sm transition-colors"
+          onclick="window.bookingApp.closeModal('checkout-modal')">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1 space-y-5 bg-[#0c0e1c]">
+        <div class="p-4 rounded-2xl border border-slate-700/80 bg-[#16192c] flex gap-4 shadow-sm">
+          <img id="checkout-movie-poster" src=""
+            class="w-16 h-24 object-cover rounded-xl shadow-md border border-slate-700 shrink-0" />
+          <div class="flex-1">
+            <h4 id="checkout-movie-title" class="text-lg font-black text-white font-display"></h4>
+            <p id="checkout-theatre-name" class="text-xs text-slate-300 font-medium"></p>
+            <p id="checkout-show-meta" class="text-xs text-amber-400 font-bold mt-1"></p>
+            <p class="text-xs text-slate-300 mt-1 font-medium">Seats: <strong id="checkout-seats-list"
+                class="text-emerald-400 font-black"></strong></p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl border border-slate-700/80 bg-[#16192c] shadow-sm">
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Have a promo code?</label>
+          <div class="flex gap-2">
+            <input type="text" id="coupon-input" placeholder="Try CINE3D for ₹100 off" value="CINE3D"
+              class="flex-1 px-4 py-2.5 rounded-xl bg-[#0a0c18] border border-slate-600 text-sm text-white uppercase placeholder-slate-400 focus:outline-none focus:border-amber-400 font-bold" />
+            <button
+              class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-white text-xs font-black transition-colors border border-slate-700"
+              onclick="window.bookingApp.applyCoupon(document.getElementById('coupon-input').value)">
+              Apply
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl border border-slate-700/80 bg-[#16192c] space-y-2 text-xs shadow-sm">
+          <div class="flex justify-between text-slate-300 font-medium">
+            <span>Tickets Subtotal</span>
+            <span id="checkout-tickets-subtotal" class="font-bold text-white">₹0</span>
+          </div>
+          <div class="flex justify-between text-slate-300 font-medium">
+            <span>Snacks & Beverages</span>
+            <span id="checkout-snacks-subtotal" class="font-bold text-white">₹0</span>
+          </div>
+          <div class="flex justify-between text-slate-300 font-medium">
+            <span>Convenience Fee & GST (18%)</span>
+            <span id="checkout-fees-subtotal" class="font-bold text-white">₹0</span>
+          </div>
+          <div class="flex justify-between text-emerald-400 font-bold">
+            <span>Discount / Offers</span>
+            <span id="checkout-discount-amount">-₹0</span>
+          </div>
+          <div class="border-t border-slate-700/80 pt-2 flex justify-between text-base font-black text-white">
+            <span>Grand Total</span>
+            <span id="checkout-grand-total" class="text-amber-400 text-xl font-black font-display">₹0</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Payment Method</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button
+              class="p-3 rounded-xl bg-amber-500/15 border border-amber-500/60 text-amber-300 text-xs font-black flex flex-col items-center gap-1 shadow-sm">
+              <span class="text-lg">⚡</span>
+              <span>UPI / QR</span>
+            </button>
+            <button
+              class="p-3 rounded-xl bg-[#16192c] border border-slate-700/80 text-slate-200 text-xs font-bold flex flex-col items-center gap-1 hover:bg-[#20243c] hover:text-white transition-colors">
+              <span class="text-lg">💳</span>
+              <span>Cards</span>
+            </button>
+            <button
+              class="p-3 rounded-xl bg-[#16192c] border border-slate-700/80 text-slate-200 text-xs font-bold flex flex-col items-center gap-1 hover:bg-[#20243c] hover:text-white transition-colors">
+              <span class="text-lg">🏦</span>
+              <span>NetBanking</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6 bg-[#13162a] border-t border-slate-700/80">
+        <button id="pay-action-btn"
+          class="w-full py-4 rounded-2xl btn-gold text-base font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25"
+          onclick="window.bookingApp.processPayment()">
+          <span id="pay-button-amount">Pay ₹0</span>
+          <span>🔒</span>
+        </button>
+        <p class="text-[11px] text-center text-slate-400 mt-2 font-medium">100% Safe & 256-Bit Encrypted Payment
+          Processing</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= DIGITAL QR TICKET MODAL ================= -->
+  <div id="ticket-modal"
+    class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="digital-ticket-card w-full max-w-md">
+
+      <div class="ticket-notch-left"></div>
+      <div class="ticket-notch-right"></div>
+      <div class="ticket-perforated-line"></div>
+
+      <!-- Ticket Header: CINEORA -->
+      <div class="p-6 pb-8 border-b border-white/10 flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-black font-black text-sm">
+            🎟️</div>
+          <div>
+            <h4 class="text-sm font-black text-white tracking-widest uppercase">CINEORA TICKET</h4>
+            <span class="text-[10px] text-emerald-400 font-bold uppercase">Booking Confirmed</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="text-[10px] text-slate-400 block">BOOKING ID</span>
+          <span id="ticket-booking-id" class="text-xs font-mono font-bold text-amber-400">CRA-849201</span>
+        </div>
+      </div>
+
+      <!-- Ticket Main Info -->
+      <div class="p-6 flex gap-4">
+        <img id="ticket-poster" src="" class="w-20 h-28 object-cover rounded-xl shadow-lg border border-white/10" />
+        <div class="flex-1">
+          <h3 id="ticket-movie-title"
+            class="text-xl font-black text-white leading-tight uppercase font-['Montserrat',sans-serif]"></h3>
+          <p id="ticket-theatre" class="text-xs text-slate-400 mt-1"></p>
+          <div class="mt-2 text-xs">
+            <span class="text-slate-400 block text-[10px]">DATE & SHOWTIME</span>
+            <span id="ticket-date-time" class="font-bold text-white"></span>
+          </div>
+          <div class="mt-2 text-xs flex justify-between">
+            <div>
+              <span class="text-slate-400 block text-[10px]">SEATS</span>
+              <span id="ticket-seats" class="font-black text-emerald-400 text-sm"></span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px]">SCREEN</span>
+              <span id="ticket-screen" class="font-bold text-white text-xs"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Perforated Bottom Section with QR Code -->
+      <div class="p-6 pt-8 bg-slate-950/70 flex items-center justify-between gap-4">
+        <div>
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">SCAN AT CINEMA TURNSTILE</span>
+          <p class="text-xs text-slate-300 mt-0.5">Show this QR code at hall entry gate for contactless admission.</p>
+          <div class="mt-3">
+            <span class="text-[10px] text-slate-400 block">TOTAL PAID</span>
+            <span id="ticket-amount" class="text-lg font-black text-white">₹0</span>
+          </div>
+        </div>
+
+        <div class="p-2 bg-white rounded-2xl shadow-xl flex-shrink-0">
+          <canvas id="ticket-qr-canvas" class="w-24 h-24 block"></canvas>
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-950 border-t border-white/5 flex gap-2">
+        <button
+          class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors"
+          onclick="window.print()">
+          🖨️ Print / Save PDF
+        </button>
+        <button
+          class="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black transition-colors"
+          onclick="window.bookingApp.closeModal('ticket-modal')">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MY TICKETS SLIDE-OVER DRAWER ================= -->
+  <div id="my-tickets-drawer" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex justify-end">
+    <div class="w-full max-w-md bg-[#080812] border-l border-white/10 h-full flex flex-col p-6 shadow-2xl">
+      <div class="flex items-center justify-between pb-4 border-b border-white/10">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🎟️</span>
+          <h3 class="text-lg font-black text-white">My Booked Tickets</h3>
+        </div>
+        <button id="close-my-tickets-btn" class="text-slate-400 hover:text-white font-bold text-lg">✕</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto py-4" id="my-tickets-list">
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TRAILER MODAL PLAYER ================= -->
+  <div id="trailer-modal"
+    class="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl hidden flex items-center justify-center p-4">
+    <div
+      class="w-full max-w-4xl bg-[#090a14] rounded-3xl overflow-hidden border border-slate-700/80 shadow-2xl flex flex-col">
+      <div class="p-4 bg-[#121528] flex items-center justify-between border-b border-slate-700/80">
+        <h4 id="trailer-modal-title" class="text-base font-black text-white font-display">Movie Trailer</h4>
+        <button id="close-trailer-btn"
+          class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 flex items-center justify-center font-bold text-sm transition-colors">✕</button>
+      </div>
+      <div class="aspect-video w-full bg-black relative" id="trailer-video-container">
+        <iframe id="trailer-iframe-player" class="w-full h-full border-0 hidden"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen></iframe>
+        <video id="trailer-video-player" class="w-full h-full object-contain" controls autoplay></video>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CITY SELECTION MODAL ================= -->
+  <div id="city-modal"
+    class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-md rounded-3xl p-6 border border-white/15">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-white">Select Your City</h3>
+        <button class="text-slate-400 hover:text-white font-bold"
+          onclick="document.getElementById('city-modal').classList.add('hidden')">✕</button>
+      </div>
+      <div class="grid grid-cols-2 gap-2.5">
+        <button
+          class="city-choice-btn p-3 rounded-xl bg-white/5 hover:bg-amber-500 hover:text-black font-bold text-sm text-slate-200 transition-colors text-left"
+          data-city="Chennai">
+          📍 Chennai
+        </button>
+        <button
+          class="city-choice-btn p-3 rounded-xl bg-white/5 hover:bg-amber-500 hover:text-black font-bold text-sm text-slate-200 transition-colors text-left"
+          data-city="Mumbai">
+          📍 Mumbai
+        </button>
+        <button
+          class="city-choice-btn p-3 rounded-xl bg-white/5 hover:bg-amber-500 hover:text-black font-bold text-sm text-slate-200 transition-colors text-left"
+          data-city="Bengaluru">
+          📍 Bengaluru
+        </button>
+        <button
+          class="city-choice-btn p-3 rounded-xl bg-white/5 hover:bg-amber-500 hover:text-black font-bold text-sm text-slate-200 transition-colors text-left"
+          data-city="Delhi-NCR">
+          📍 Delhi-NCR
+        </button>
+        <button
+          class="city-choice-btn p-3 rounded-xl bg-white/5 hover:bg-amber-500 hover:text-black font-bold text-sm text-slate-200 transition-colors text-left"
+          data-city="Hyderabad">
+          📍 Hyderabad
+        </button>
+        <button
+          class="city-choice-btn p-3 rounded-xl bg-white/5 hover:bg-amber-500 hover:text-black font-bold text-sm text-slate-200 transition-colors text-left"
+          data-city="Kochi">
+          📍 Kochi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SCRIPTS ================= -->
+  <script src="js/data.js"></script>
+  <script src="js/hero3d.js"></script>
+  <script src="js/cinema3d.js"></script>
+  <script src="js/booking.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+
+</html>
