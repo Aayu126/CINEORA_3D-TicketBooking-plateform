@@ -21,13 +21,61 @@ function CinemaScreenCurve({ movie, relIndex, isSelected, onSelect }: CinemaScre
   const subGroupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
-  // Load high-res texture cleanly without any color box tint
+  // Load high-res texture cleanly with instant canvas backdrop and robust multi-path loading
   const texture = useMemo(() => {
-    const loader = new THREE.TextureLoader();
-    const tex = loader.load(movie.poster);
+    // 1. Generate an instant crisp high-contrast canvas texture with title, cert & rating
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 768;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const grad = ctx.createLinearGradient(0, 0, 512, 768);
+      grad.addColorStop(0, '#0c1020');
+      grad.addColorStop(0.5, '#1e293b');
+      grad.addColorStop(1, '#050814');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 512, 768);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 44px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(movie.title, 256, 360);
+
+      ctx.fillStyle = '#f59e0b';
+      ctx.font = '700 22px sans-serif';
+      ctx.fillText(`★ ${movie.rating} · ${movie.genre}`, 256, 410);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '600 18px sans-serif';
+      ctx.fillText(movie.primaryLang + ' · ' + movie.runtime, 256, 450);
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
+
+    // 2. Load the actual poster file asynchronously with auto fallback
+    const loader = new THREE.TextureLoader();
+    const posterSrc = movie.poster;
+    loader.load(
+      posterSrc,
+      (loadedTex) => {
+        loadedTex.colorSpace = THREE.SRGBColorSpace;
+        tex.image = loadedTex.image;
+        tex.needsUpdate = true;
+      },
+      undefined,
+      () => {
+        const altSrc = posterSrc.startsWith('/') ? posterSrc.slice(1) : '/' + posterSrc;
+        loader.load(altSrc, (loadedTex) => {
+          loadedTex.colorSpace = THREE.SRGBColorSpace;
+          tex.image = loadedTex.image;
+          tex.needsUpdate = true;
+        });
+      }
+    );
+
     return tex;
-  }, [movie.poster]);
+  }, [movie.poster, movie.title, movie.rating, movie.genre, movie.primaryLang, movie.runtime]);
 
   // Panoramic Arc Geometry:
   // Active movie is always at relIndex = 0 (centered, z = 0, facing directly forward)
@@ -39,7 +87,7 @@ function CinemaScreenCurve({ movie, relIndex, isSelected, onSelect }: CinemaScre
   const targetX = Math.sin(theta) * radius;
   const targetZ = Math.cos(theta) * radius - radius; // z <= 0 curves backwards away from camera
   const targetRotY = -theta * 0.96; // Turn inwards to face towards the center camera!
-  const targetY = isSelected ? 0.55 : 0; // Prominently elevate the active movie
+  const targetY = isSelected ? 0.72 : 0; // Prominently elevate active movie so front banner is 100% visible
 
   // Visible screens across the panoramic view (|relIndex| <= 3.5)
   const isVisible = Math.abs(relIndex) <= 3.5;
@@ -103,35 +151,45 @@ function CinemaScreenCurve({ movie, relIndex, isSelected, onSelect }: CinemaScre
             document.body.style.cursor = 'default';
           }}
         >
-          {/* Front Poster Surface (Facing the viewer with DoubleSide so never culled) */}
-          <mesh position={[0, 0, 0.04]} castShadow>
+          {/* Front Poster Surface (Elevated in Z to guarantee zero bezel clipping or depth-fighting) */}
+          <mesh position={[0, 0, 0.05]} castShadow>
             <planeGeometry args={[3.2, 4.8, 16, 1]} />
             <meshStandardMaterial
               map={texture}
-              roughness={0.22}
-              metalness={0.06}
+              roughness={0.20}
+              metalness={0.04}
               side={THREE.DoubleSide}
             />
           </mesh>
 
           {/* Brushed Champagne Gold / Obsidian Platinum Metallic Bezel Frame with Depth */}
           <mesh position={[0, 0, 0]} castShadow>
-            <boxGeometry args={[3.36, 4.96, 0.06]} />
+            <boxGeometry args={[3.36, 4.96, 0.07]} />
             <meshStandardMaterial
               color={isSelected ? 0xd97706 : 0x242d3d}
               emissive={isSelected ? 0x92400e : 0x000000}
-              emissiveIntensity={isSelected ? 0.35 : 0}
+              emissiveIntensity={isSelected ? 0.45 : 0}
               roughness={0.25}
               metalness={0.88}
             />
           </mesh>
 
-          {/* Under-Screen Focus Spotlight Glow on Active/Hovered Screen */}
+          {/* Dedicated Front Key Spotlight on Active Movie Screen */}
+          {isSelected && (
+            <pointLight
+              position={[0, 0.5, 3.2]}
+              color="#fffcf5"
+              intensity={3.8}
+              distance={9.0}
+            />
+          )}
+
+          {/* Under-Screen Ambient Focus Spotlight Glow on Active/Hovered Screen */}
           {(isSelected || hovered) && (
             <pointLight
               position={[0, -2.4, 0.8]}
               color={isSelected ? '#f59e0b' : '#38bdf8'}
-              intensity={isSelected ? 2.5 : 1.2}
+              intensity={isSelected ? 2.8 : 1.2}
               distance={6.0}
             />
           )}

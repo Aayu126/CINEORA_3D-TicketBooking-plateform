@@ -47,8 +47,8 @@ class HeroPanorama3D {
     const height = this.container.clientHeight;
 
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    this.camera.position.set(0, 0.6, 14.5);
-    this.camera.lookAt(0, -0.2, 0);
+    this.camera.position.set(0, 0.75, 13.8);
+    this.camera.lookAt(0, 0.35, 0);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     this.renderer.setSize(width, height);
@@ -286,9 +286,9 @@ class HeroPanorama3D {
       const theta = rel * angleStep;
       const targetX = Math.sin(theta) * radius;
       const targetZ = Math.cos(theta) * radius - radius; // z <= 0 curves away from the camera!
-      const targetRotY = theta * 0.92;
+      const targetRotY = -theta * 0.96; // Inward curved to face towards the viewer!
 
-      mesh.position.set(targetX, rel === 0 ? 0.35 : 0, targetZ);
+      mesh.position.set(targetX, rel === 0 ? 0.75 : 0, targetZ);
       mesh.rotation.y = targetRotY;
 
       // Show the closest 7 screens in the panoramic curve
