@@ -170,6 +170,11 @@ class BookingCoordinator {
     hallOverlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
+    // Pause hero background carousel rotation so movie never auto-advances in theater
+    if (window.heroInstance && typeof window.heroInstance.pauseAutoRotate === 'function') {
+      window.heroInstance.pauseAutoRotate();
+    }
+
     const activeStructure = (this.state.theatre && this.state.theatre.structure) || 'grand-wood';
     
     // Update active state in UI structure switcher buttons
@@ -615,6 +620,9 @@ class BookingCoordinator {
           this.cinemaHallInstance.stopTheaterTrailer();
         }
         this.cinemaHallInstance = null;
+        if (window.heroInstance && typeof window.heroInstance.startAutoRotate === 'function') {
+          window.heroInstance.startAutoRotate();
+        }
       }
     }
   }

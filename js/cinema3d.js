@@ -1184,7 +1184,7 @@ class CinemaHall3D {
     stageEdge.position.set(0, stageHeight + 0.04, -6.3);
     group.add(stageEdge);
 
-    // 2. High-Fidelity Curved Acoustic Cinema Screen (Concave to Auditorium)
+    // 2. High-Performance Cinemascope Screen (Concave to Auditorium)
     const screenWidth = 24.5;
     const screenHeight = 10.5;
     const screenGeo = new THREE.PlaneGeometry(screenWidth, screenHeight, 48, 1);
@@ -1197,23 +1197,35 @@ class CinemaHall3D {
     }
     screenGeo.computeVertexNormals();
 
-    // Dynamic 2048x1024 4K Laser Projection Canvas
+    // Pre-render Standby Canvas ONCE (zero per-frame drawImage overhead)
     this.screenCanvas = document.createElement('canvas');
-    this.screenCanvas.width = 2048;
-    this.screenCanvas.height = 1024;
-    this.screenCtx = this.screenCanvas.getContext('2d');
-    this.screenTexture = new THREE.CanvasTexture(this.screenCanvas);
-    this.screenTexture.generateMipmaps = true;
-    this.screenTexture.minFilter = THREE.LinearMipmapLinearFilter;
+    this.screenCanvas.width = 1024;
+    this.screenCanvas.height = 512;
+    this.renderStandbyScreenCanvas();
 
-    const screenMat = new THREE.MeshBasicMaterial({
-      map: this.screenTexture,
+    this.standbyTexture = new THREE.CanvasTexture(this.screenCanvas);
+    this.standbyTexture.generateMipmaps = false;
+    this.standbyTexture.minFilter = THREE.LinearFilter;
+    this.standbyTexture.magFilter = THREE.LinearFilter;
+
+    // Hardware Zero-Copy VideoTexture directly bound to GPU
+    if (this.trailerVideo) {
+      this.videoTexture = new THREE.VideoTexture(this.trailerVideo);
+      this.videoTexture.generateMipmaps = false;
+      this.videoTexture.minFilter = THREE.LinearFilter;
+      this.videoTexture.magFilter = THREE.LinearFilter;
+      this.videoTexture.colorSpace = THREE.SRGBColorSpace;
+    }
+
+    this.screenMat = new THREE.MeshBasicMaterial({
+      map: this.standbyTexture,
       side: THREE.DoubleSide
     });
 
-    this.screenMesh = new THREE.Mesh(screenGeo, screenMat);
+    this.screenMesh = new THREE.Mesh(screenGeo, this.screenMat);
     // Positioned front and center over stage at Y = 7.8, Z = -11.8
     this.screenMesh.position.set(0, 7.8, -11.8);
+    this.screenMesh.userData = { isScreen: true };
     group.add(this.screenMesh);
 
     // Dark Acoustic Backboard Wall Behind Screen (Ensures solid backdrop)
@@ -2123,6 +2135,64 @@ class CinemaHall3D {
     }
   }
 
+  // Pre-render High-Contrast Standby Canvas ONCE (zero per-frame CPU load)
+  renderStandbyScreenCanvas() {
+    if (!this.screenCanvas) return;
+    const ctx = this.screenCanvas.getContext('2d');
+    if (!ctx) return;
+    const movie = this.options.movie || (window.CINE_DATA ? window.CINE_DATA.movies[0] : null);
+    const title = movie ? movie.title : 'CINEORA';
+
+    const grad = ctx.createRadialGradient(512, 256, 40, 512, 256, 600);
+    grad.addColorStop(0, '#0f172a');
+    grad.addColorStop(0.55, '#070914');
+    grad.addColorStop(1, '#020308');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1024, 512);
+
+    // Subtle grid lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= 1024; x += 64) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, 512);
+      ctx.stroke();
+    }
+
+    // Play Glyph
+    ctx.beginPath();
+    ctx.arc(512, 210, 48, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+    ctx.fill();
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(502, 192);
+    ctx.lineTo(530, 210);
+    ctx.lineTo(502, 228);
+    ctx.closePath();
+    ctx.fillStyle = '#f59e0b';
+    ctx.fill();
+
+    // Movie Title
+    ctx.font = '900 44px "Outfit", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.fillText(title.toUpperCase(), 512, 310);
+
+    // CTA
+    ctx.font = '700 20px "DM Sans", sans-serif';
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillText('▶ CLICK SCREEN TO PLAY 4K TRAILER', 512, 355);
+
+    ctx.font = '600 14px "DM Sans", sans-serif';
+    ctx.fillStyle = '#64748b';
+    ctx.fillText('2.39:1 CINEMASCOPE · DOLBY ATMOS 128 CHANNELS', 512, 395);
+  }
+
   // =========================================================================
   // THEATER SCREEN TRAILER VIDEO SYSTEM
   // =========================================================================
@@ -2141,18 +2211,22 @@ class CinemaHall3D {
     this.trailerVideo.setAttribute('playsinline', '');
     this.trailerVideo.setAttribute('webkit-playsinline', '');
     this.trailerVideo.loop = true;
+    this.trailerVideo.defaultMuted = true;
     this.trailerVideo.muted = true;
     this.trailerVideo.setAttribute('muted', '');
     this.trailerVideo.preload = 'auto';
-    this.trailerVideo.style.position = 'fixed';
+    this.trailerVideo.style.position = 'absolute';
     this.trailerVideo.style.bottom = '10px';
     this.trailerVideo.style.right = '10px';
     this.trailerVideo.style.width = '320px';
     this.trailerVideo.style.height = '180px';
-    this.trailerVideo.style.opacity = '0.001';
+    this.trailerVideo.style.opacity = '0.01';
     this.trailerVideo.style.pointerEvents = 'none';
-    this.trailerVideo.style.zIndex = '-999';
-    document.body.appendChild(this.trailerVideo);
+    this.trailerVideo.style.zIndex = '1';
+    
+    // Attach directly inside the canvas container to keep hardware decoding active
+    const targetParent = this.container || document.body;
+    targetParent.appendChild(this.trailerVideo);
 
     const movie = this.options.movie || (window.CINE_DATA ? window.CINE_DATA.movies[0] : null);
     const videoUrl = (movie && movie.trailerUrl) ? movie.trailerUrl : 'videos/trailer.mp4';
@@ -2180,12 +2254,6 @@ class CinemaHall3D {
     this.trailerVideo.src = videoUrl;
     this.trailerVideo.load();
 
-    this.trailerVideo.addEventListener('canplay', () => {
-      if (!this.isTrailerPlaying && this.trailerVideo.currentTime === 0) {
-        this.playTheaterTrailer();
-      }
-    }, { once: true });
-
     this.trailerVideo.addEventListener('play', () => {
       this.isTrailerPlaying = true;
       this.updateTrailerUI();
@@ -2206,7 +2274,7 @@ class CinemaHall3D {
     if (!this.trailerVideo) return;
     const movie = this.options.movie || (window.CINE_DATA ? window.CINE_DATA.movies[0] : null);
     const videoUrl = (movie && movie.trailerUrl) ? movie.trailerUrl : 'videos/trailer.mp4';
-    if (!this.trailerVideo.src || (!this.trailerVideo.src.includes(videoUrl) && !this.trailerVideo.dataset.triedPublic)) {
+    if (!this.trailerVideo.src) {
       this.trailerVideo.src = videoUrl;
       this.trailerVideo.load();
     }
@@ -2218,7 +2286,7 @@ class CinemaHall3D {
         this.isTrailerPlaying = true;
         this.updateTrailerUI();
       }).catch(err => {
-        console.warn('Playback with audio blocked by browser policy, fallback to muted:', err);
+        console.warn('Audio playback restricted, auto-playing muted:', err);
         this.trailerVideo.muted = true;
         this.isTrailerMuted = true;
         this.trailerVideo.play().then(() => {
@@ -2305,71 +2373,24 @@ class CinemaHall3D {
   }
 
   updateScreenAnimation() {
-    if (!this.screenCtx) return;
-
-    const ctx = this.screenCtx;
     const time = performance.now() * 0.0015;
-    const movie = this.options.movie || (window.CINE_DATA ? window.CINE_DATA.movies[0] : null);
-    const title = movie ? movie.title : 'CINEORA';
-
-    // A. LIVE TRAILER VIDEO PLAYBACK ON THEATER SCREEN
     const isPlaying = this.trailerVideo && !this.trailerVideo.paused && (this.trailerVideo.readyState >= 1 || this.trailerVideo.currentTime > 0);
-    if (isPlaying) {
-      // 1. Backing
-      ctx.fillStyle = '#010103';
-      ctx.fillRect(0, 0, 2048, 1024);
 
-      // 2. Video frame rendered in 2.39:1 Cinemascope anamorphic ratio
-      let drewVideo = false;
-      try {
-        ctx.drawImage(this.trailerVideo, 0, 85, 2048, 854);
-        drewVideo = true;
-      } catch (e) {
-        // Fallback to videoTexture directly if available
+    // Ensure VideoTexture exists once video starts loading/playing
+    if (!this.videoTexture && this.trailerVideo) {
+      this.videoTexture = new THREE.VideoTexture(this.trailerVideo);
+      this.videoTexture.generateMipmaps = false;
+      this.videoTexture.minFilter = THREE.LinearFilter;
+      this.videoTexture.magFilter = THREE.LinearFilter;
+      this.videoTexture.colorSpace = THREE.SRGBColorSpace;
+    }
+
+    // Zero-Copy Hardware GPU Texture Swap (Eliminates 500MB/s per-frame canvas drawImage lag!)
+    if (isPlaying && this.videoTexture) {
+      if (this.screenMat && this.screenMat.map !== this.videoTexture) {
+        this.screenMat.map = this.videoTexture;
+        this.screenMat.needsUpdate = true;
       }
-
-      // If video element is still loading initial frame, draw clean standby frame
-      if (!drewVideo) {
-        ctx.fillStyle = '#080c1a';
-        ctx.fillRect(0, 85, 2048, 854);
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '900 64px "Outfit", sans-serif';
-        ctx.fillText(`⚡ ${title.toUpperCase()} — TRAILER`, 1024, 480);
-        ctx.fillStyle = '#f59e0b';
-        ctx.font = '700 24px "DM Sans", sans-serif';
-        ctx.fillText('Loading 4K Laser Projection...', 1024, 545);
-      }
-
-      // 3. Header Masking with Metadata
-      ctx.fillStyle = '#020205';
-      ctx.fillRect(0, 0, 2048, 85);
-      ctx.font = '800 24px "Outfit", sans-serif';
-      ctx.fillStyle = '#f59e0b';
-      ctx.textAlign = 'left';
-      ctx.fillText(`⚡ CINEORA 4K LASER · ${title.toUpperCase()} — OFFICIAL TRAILER`, 60, 52);
-
-      ctx.font = '700 20px "DM Sans", sans-serif';
-      ctx.fillStyle = '#38bdf8';
-      ctx.textAlign = 'right';
-      ctx.fillText('🔊 DOLBY ATMOS 128 CHANNELS · DCI-P3 4K HDR', 1988, 52);
-
-      // 4. Footer Masking
-      ctx.fillStyle = '#020205';
-      ctx.fillRect(0, 939, 2048, 85);
-      ctx.font = '600 18px "DM Sans", sans-serif';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.textAlign = 'left';
-      ctx.fillText('📐 2.39:1 CINEMASCOPE · CURVED AUDITORIUM SCREEN', 60, 982);
-
-      ctx.font = '700 18px "DM Sans", sans-serif';
-      ctx.fillStyle = '#10b981';
-      ctx.textAlign = 'right';
-      ctx.fillText('● PLAYING LIVE · CLICK SCREEN TO PAUSE', 1988, 982);
-
-      this.screenTexture.needsUpdate = true;
-
-      // Dynamic Projector Spill from video
       if (this.screenSpillLight) {
         this.screenSpillLight.color.setRGB(0.96, 0.94, 0.90);
         this.screenSpillLight.intensity = 3.6 + Math.sin(time * 3.5) * 0.7;
@@ -2378,135 +2399,15 @@ class CinemaHall3D {
         this.screenLight.color.setRGB(0.85, 0.92, 1.0);
         this.screenLight.intensity = 5.0 + Math.sin(time * 2.8) * 0.6;
       }
-      return;
-    }
-
-    // B. PAUSED TRAILER STATE
-    if (this.trailerVideo && !this.isTrailerPlaying && this.trailerVideo.currentTime > 0) {
-      ctx.fillStyle = '#010103';
-      ctx.fillRect(0, 0, 2048, 1024);
-      try {
-        if (this.trailerVideo.videoWidth > 0) {
-          ctx.drawImage(this.trailerVideo, 0, 85, 2048, 854);
-        }
-      } catch (e) {}
-
-      // Translucent pause overlay
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-      ctx.fillRect(0, 85, 2048, 854);
-
-      // Pause glyph and hint
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.font = '900 64px "Outfit", sans-serif';
-      ctx.fillText('⏸ TRAILER PAUSED', 1024, 490);
-      ctx.font = '700 24px "DM Sans", sans-serif';
-      ctx.fillStyle = '#f59e0b';
-      ctx.fillText('Click screen or tap Play Trailer to resume', 1024, 550);
-
-      this.screenTexture.needsUpdate = true;
-      return;
-    }
-
-    // C. STANDBY CINEMA SCREEN ANIMATION (High-End Dark Cinematic Dolby/IMAX Screen - NEVER YELLOW)
-    // Deep obsidian luxury atmospheric background
-    const grad = ctx.createRadialGradient(1024, 512, 120, 1024, 512, 1100);
-    grad.addColorStop(0, '#0f172a');
-    grad.addColorStop(0.55, '#070914');
-    grad.addColorStop(1, '#020308');
-
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 2048, 1024);
-
-    // Micro-Perforation Grid (Simulating high-gain cinema projection screen material)
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
-    for (let py = 100; py < 924; py += 22) {
-      for (let px = 60; px < 1988; px += 28) {
-        ctx.fillRect(px, py, 1.5, 1.5);
+    } else {
+      if (this.screenMat && this.screenMat.map !== this.standbyTexture) {
+        this.screenMat.map = this.standbyTexture;
+        this.screenMat.needsUpdate = true;
       }
+      if (this.screenSpillLight) this.screenSpillLight.intensity = 0.6;
+      if (this.screenLight) this.screenLight.intensity = 1.2;
     }
-
-    // Top & Bottom 2.39:1 Cinemascope Velvet Letterbox Bands
-    ctx.fillStyle = '#010103';
-    ctx.fillRect(0, 0, 2048, 90);
-    ctx.fillRect(0, 934, 2048, 90);
-
-    // Glowing Play Button in Center
-    ctx.beginPath();
-    ctx.arc(1024, 430, 48, 0, Math.PI * 2);
-    ctx.fillStyle = '#f59e0b';
-    ctx.shadowColor = 'rgba(245, 158, 11, 0.6)';
-    ctx.shadowBlur = 24;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // Play Arrow
-    ctx.beginPath();
-    ctx.moveTo(1015, 412);
-    ctx.lineTo(1043, 430);
-    ctx.lineTo(1015, 448);
-    ctx.closePath();
-    ctx.fillStyle = '#020617';
-    ctx.fill();
-
-    // Film Title & Cinematic Typography
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '900 72px "Outfit", "Plus Jakarta Sans", sans-serif';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-    ctx.shadowBlur = 32;
-    ctx.fillText(`${title.toUpperCase()}`, 1024, 545);
-    ctx.shadowBlur = 0;
-
-    // Subtitle / Tagline
-    ctx.font = '700 24px "DM Sans", sans-serif';
-    ctx.fillStyle = '#f59e0b';
-    const tagline = movie ? movie.tagline : 'The Next Generation Cinematic Experience';
-    ctx.fillText(tagline, 1024, 600);
-
-    // Action Hint
-    ctx.font = '800 20px "DM Sans", sans-serif';
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillText('⚡ TAP SCREEN OR CLICK "PLAY" TO WATCH OFFICIAL TRAILER', 1024, 645);
-
-    // Metadata: Cert, Runtime, Genre
-    ctx.font = '500 24px "Inter", sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
-    const metaStr = movie ? `${movie.cert} · ${movie.genre} · ${movie.runtime} · ${movie.primaryLang}` : '4K LASER · DOLBY ATMOS';
-    ctx.fillText(metaStr, 1024, 580);
-
-    // 6. Professional Audio & Visual Cinema Badges in 4 Corners
-    // Top-Left: CINEORA 4K LASER
-    ctx.textAlign = 'left';
-    ctx.font = '800 21px "Inter", sans-serif';
-    ctx.fillStyle = '#f59e0b';
-    ctx.fillText('⚡ CINEORA 4K LASER HDR', 90, 58);
-
-    // Top-Right: DOLBY ATMOS
-    ctx.textAlign = 'right';
-    ctx.font = '800 21px "Inter", sans-serif';
-    ctx.fillStyle = '#06b6d4';
-    ctx.fillText('🔊 DOLBY ATMOS · 128 CHANNELS', 1958, 58);
-
-    // Bottom-Left: 2.39:1 SCOPE
-    ctx.textAlign = 'left';
-    ctx.font = '700 19px "Inter", sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-    ctx.fillText('📐 2.39:1 CINEMASCOPE · CURVED DCI P3', 90, 980);
-
-    // Bottom-Right: REAL-D 3D CERTIFIED
-    ctx.textAlign = 'right';
-    ctx.font = '700 19px "Inter", sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-    ctx.fillText('✨ REAL-D 3D HIGH-FRAME-RATE (HFR)', 1958, 980);
-
-    this.screenTexture.needsUpdate = true;
-
-    // 7. Modulate Directional Light Spill onto Auditorium
-    if (this.screenSpillLight) {
-      this.screenSpillLight.color.setRGB(r / 255, g / 255, b / 255);
-      this.screenSpillLight.intensity = 2.2 + Math.sin(time * 2.5) * 0.45;
-    }
+  }
   }
 
   animate() {

@@ -154,19 +154,86 @@ export default function CinemaHall3D() {
     carpetTexture.wrapS = THREE.RepeatWrapping;
     carpetTexture.wrapT = THREE.RepeatWrapping;
 
-    // 5. Screen Canvas & Dynamic Texture
+    // 5. High-Performance Screen Textures: Standby Canvas + Hardware Zero-Copy VideoTexture
     const screenCanvas = document.createElement('canvas');
-    screenCanvas.width = isMobile ? 1024 : 2048;
-    screenCanvas.height = isMobile ? 512 : 1024;
+    screenCanvas.width = 1024;
+    screenCanvas.height = 512;
     const screenCtx = screenCanvas.getContext('2d')!;
-    const screenTexture = new THREE.CanvasTexture(screenCanvas);
-    screenTexture.generateMipmaps = true;
-    screenTexture.minFilter = THREE.LinearMipmapLinearFilter;
+
+    // Pre-render Standby Screen ONCE (eliminates 500MB/s per-frame canvas redraw lag)
+    const renderStandbyScreen = () => {
+      const grad = screenCtx.createRadialGradient(
+        screenCanvas.width / 2, screenCanvas.height / 2, 50,
+        screenCanvas.width / 2, screenCanvas.height / 2, screenCanvas.width / 1.2
+      );
+      grad.addColorStop(0, '#0f172a');
+      grad.addColorStop(0.5, '#080d1a');
+      grad.addColorStop(1, '#020409');
+      screenCtx.fillStyle = grad;
+      screenCtx.fillRect(0, 0, screenCanvas.width, screenCanvas.height);
+
+      // Grid lines
+      screenCtx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      screenCtx.lineWidth = 2;
+      for (let gx = 0; gx < screenCanvas.width; gx += 128) {
+        screenCtx.beginPath();
+        screenCtx.moveTo(gx, 0);
+        screenCtx.lineTo(gx, screenCanvas.height);
+        screenCtx.stroke();
+      }
+
+      // Amber Play Ring
+      const cx = screenCanvas.width / 2;
+      const cy = screenCanvas.height / 2 - 30;
+      screenCtx.beginPath();
+      screenCtx.arc(cx, cy, 64, 0, Math.PI * 2);
+      screenCtx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+      screenCtx.fill();
+      screenCtx.strokeStyle = '#f59e0b';
+      screenCtx.lineWidth = 4;
+      screenCtx.stroke();
+
+      // Play Triangle Glyph
+      screenCtx.beginPath();
+      screenCtx.moveTo(cx - 16, cy - 28);
+      screenCtx.lineTo(cx + 28, cy);
+      screenCtx.lineTo(cx - 16, cy + 28);
+      screenCtx.closePath();
+      screenCtx.fillStyle = '#f59e0b';
+      screenCtx.fill();
+
+      // Title & Instruction
+      screenCtx.font = '900 48px "Outfit", "Plus Jakarta Sans", sans-serif';
+      screenCtx.fillStyle = '#ffffff';
+      screenCtx.textAlign = 'center';
+      screenCtx.fillText(selectedMovie.title, screenCanvas.width / 2, screenCanvas.height / 2 + 85);
+
+      screenCtx.font = '700 24px "Inter", sans-serif';
+      screenCtx.fillStyle = '#f59e0b';
+      screenCtx.fillText('▶ CLICK SCREEN TO PLAY 4K TRAILER', screenCanvas.width / 2, screenCanvas.height / 2 + 130);
+    };
+    renderStandbyScreen();
+
+    const standbyTexture = new THREE.CanvasTexture(screenCanvas);
+    standbyTexture.generateMipmaps = false;
+    standbyTexture.minFilter = THREE.LinearFilter;
+    standbyTexture.magFilter = THREE.LinearFilter;
+
+    // Hardware-accelerated GPU VideoTexture (bypasses CPU memory bus)
+    let videoTexture: THREE.VideoTexture | null = null;
+    const rawVideo = videoRef.current;
+    if (rawVideo) {
+      videoTexture = new THREE.VideoTexture(rawVideo);
+      videoTexture.colorSpace = THREE.SRGBColorSpace;
+      videoTexture.generateMipmaps = false;
+      videoTexture.minFilter = THREE.LinearFilter;
+      videoTexture.magFilter = THREE.LinearFilter;
+    }
 
     // Curved Cinemascope Screen Mesh (2.39:1)
     const screenGeo = new THREE.CylinderGeometry(42, 42, 12.8, 48, 1, true, Math.PI - 0.28, 0.56);
     const screenMat = new THREE.MeshBasicMaterial({
-      map: screenTexture,
+      map: standbyTexture,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 1.0,
@@ -820,20 +887,30 @@ export default function CinemaHall3D() {
       // Dynamic 3D Volumetric Projector Beam Animation & Flicker
       const video = videoRef.current;
       const time = performance.now() * 0.001;
-      let hasFrame = false;
+      const isPlaying = !!(video && !video.paused && (video.readyState >= 1 || video.currentTime > 0));
 
-      // Draw Trailer Video onto Screen Canvas (supporting readyState >= 1 or ticking currentTime)
-      if (video && !video.paused && (video.readyState >= 1 || video.currentTime > 0)) {
-        try {
-          screenCtx.drawImage(video, 0, 0, screenCanvas.width, screenCanvas.height);
-          screenTexture.needsUpdate = true;
-          hasFrame = true;
-        } catch (e) {
-          // ignore transient decoding frame error
+      // Lazy-instantiate VideoTexture if video element just mounted
+      if (!videoTexture && video) {
+        videoTexture = new THREE.VideoTexture(video);
+        videoTexture.colorSpace = THREE.SRGBColorSpace;
+        videoTexture.generateMipmaps = false;
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+      }
+
+      // Zero-Copy Hardware GPU Texture Swap (Eliminates 500MB/s per-frame canvas drawImage lag!)
+      if (isPlaying && videoTexture) {
+        if (screenMat.map !== videoTexture) {
+          screenMat.map = videoTexture;
+          screenMat.needsUpdate = true;
+        }
+      } else {
+        if (screenMat.map !== standbyTexture) {
+          screenMat.map = standbyTexture;
+          screenMat.needsUpdate = true;
         }
       }
 
-      const isPlaying = hasFrame || !!(video && !video.paused);
       beamMat.opacity = (isPlaying ? 0.08 : 0.035) + Math.sin(time * 24) * 0.012;
       dustMotes.rotation.z = time * 0.035;
 
@@ -846,61 +923,6 @@ export default function CinemaHall3D() {
         screenLight.intensity = 1.2;
       }
 
-      if (!hasFrame) {
-        // Draw Obsidian Standby Screen with Amber Title and Interactive Play Button
-        const grad = screenCtx.createRadialGradient(
-          screenCanvas.width / 2, screenCanvas.height / 2, 50,
-          screenCanvas.width / 2, screenCanvas.height / 2, screenCanvas.width / 1.2
-        );
-        grad.addColorStop(0, '#0f172a');
-        grad.addColorStop(0.5, '#080d1a');
-        grad.addColorStop(1, '#020409');
-        screenCtx.fillStyle = grad;
-        screenCtx.fillRect(0, 0, screenCanvas.width, screenCanvas.height);
-
-        // Grid lines
-        screenCtx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-        screenCtx.lineWidth = 2;
-        for (let gx = 0; gx < screenCanvas.width; gx += 128) {
-          screenCtx.beginPath();
-          screenCtx.moveTo(gx, 0);
-          screenCtx.lineTo(gx, screenCanvas.height);
-          screenCtx.stroke();
-        }
-
-        // Amber Play Ring
-        const cx = screenCanvas.width / 2;
-        const cy = screenCanvas.height / 2 - 30;
-        screenCtx.beginPath();
-        screenCtx.arc(cx, cy, 64, 0, Math.PI * 2);
-        screenCtx.fillStyle = 'rgba(245, 158, 11, 0.15)';
-        screenCtx.fill();
-        screenCtx.strokeStyle = '#f59e0b';
-        screenCtx.lineWidth = 4;
-        screenCtx.stroke();
-
-        // Play Triangle
-        screenCtx.beginPath();
-        screenCtx.moveTo(cx - 18, cy - 28);
-        screenCtx.lineTo(cx + 28, cy);
-        screenCtx.lineTo(cx - 18, cy + 28);
-        screenCtx.closePath();
-        screenCtx.fillStyle = '#f59e0b';
-        screenCtx.fill();
-
-        // Movie Title & Hint
-        screenCtx.font = '900 48px "Montserrat", sans-serif';
-        screenCtx.fillStyle = '#ffffff';
-        screenCtx.textAlign = 'center';
-        screenCtx.fillText(selectedMovie.title, screenCanvas.width / 2, screenCanvas.height / 2 + 85);
-
-        screenCtx.font = '700 24px "Inter", sans-serif';
-        screenCtx.fillStyle = '#f59e0b';
-        screenCtx.fillText('▶ CLICK SCREEN TO PLAY 4K TRAILER', screenCanvas.width / 2, screenCanvas.height / 2 + 130);
-
-        screenTexture.needsUpdate = true;
-      }
-
       renderer.render(scene, camera);
     };
     animate();
@@ -910,7 +932,7 @@ export default function CinemaHall3D() {
       camera,
       renderer,
       controls,
-      screenTexture,
+      screenTexture: standbyTexture,
       screenCanvas,
       screenCtx,
       screenMesh,
@@ -1142,7 +1164,7 @@ export default function CinemaHall3D() {
 
   return (
     <div className="fixed inset-0 z-50 bg-[#030307] flex flex-col overflow-hidden animate-in fade-in duration-300">
-      {/* Video Source for Three.js Texture (In-viewport to prevent browser GPU throttling) */}
+      {/* Video Source for Three.js Texture (In-viewport to prevent browser GPU throttling, no crossOrigin block) */}
       <video
         ref={videoRef}
         src={selectedMovie.trailerUrl}
@@ -1151,13 +1173,20 @@ export default function CinemaHall3D() {
         autoPlay
         muted={isTrailerMuted}
         preload="auto"
-        crossOrigin="anonymous"
         onError={() => {
           if (videoRef.current && !videoRef.current.dataset.fallback) {
             videoRef.current.dataset.fallback = '1';
-            videoRef.current.src = '/videos/trailer.mp4';
+            const cur = selectedMovie.trailerUrl || '';
+            const alt = cur.startsWith('/') ? cur.slice(1) : '/' + cur;
+            videoRef.current.src = alt;
             videoRef.current.load();
-            videoRef.current.play().catch(() => {});
+            videoRef.current.play().catch(() => {
+              if (videoRef.current) {
+                videoRef.current.src = '/videos/trailer.mp4';
+                videoRef.current.load();
+                videoRef.current.play().catch(() => {});
+              }
+            });
           }
         }}
         style={{

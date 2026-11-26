@@ -248,15 +248,21 @@ function CurvedScreensRing() {
     }
   });
 
-  // Smooth automatic slideshow rotation when user is idle
+  const activeModal = useCinemaStore((state) => state.activeModal);
+  const isTrailerPlaying = useCinemaStore((state) => state.isTrailerPlaying);
+
+  // Smooth automatic slideshow rotation ONLY when on homepage and no modal or theater is active
   useEffect(() => {
+    // Crucial: Stop auto-rotation whenever cinema hall, showtimes, snacks, or trailer modal is active!
+    if (activeModal !== null || isTrailerPlaying) return;
+
     const timer = setInterval(() => {
       if (!isDragging.current) {
         nextMovie();
       }
-    }, 7500);
+    }, 10000);
     return () => clearInterval(timer);
-  }, [nextMovie]);
+  }, [activeModal, isTrailerPlaying, nextMovie]);
 
   return (
     <>

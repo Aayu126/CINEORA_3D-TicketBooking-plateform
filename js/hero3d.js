@@ -411,6 +411,16 @@ class HeroPanorama3D {
   startAutoRotate() {
     this.pauseAutoRotate();
     this.autoRotateTimer = setInterval(() => {
+      // Never auto-advance if the 3D cinema hall, showtimes, or trailer modal is active
+      const hallModal = document.getElementById('cinema-hall-overlay');
+      const showtimeModal = document.getElementById('showtime-modal');
+      const trailerModal = document.getElementById('trailer-modal');
+      const isHallOpen = (hallModal && !hallModal.classList.contains('hidden')) ||
+                         (showtimeModal && !showtimeModal.classList.contains('hidden')) ||
+                         (trailerModal && !trailerModal.classList.contains('hidden')) ||
+                         (window.bookingApp && window.bookingApp.cinemaHallInstance);
+
+      if (isHallOpen) return;
       this.next();
     }, this.options.autoRotateDelay);
   }
